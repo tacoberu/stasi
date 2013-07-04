@@ -1,0 +1,9 @@
+# ACL
+# Relative repository
+# Manage user, repositories, konfigure by admin-repo, like gitolite
+# Manage wrapered ~/.ssh/authorized_keys
+
+
+
+Centrální soubor, uchovávající konfiguraci.
+Tento soubor je managován. Přičemž tato správa může být přes libovolný způsob. Pro začátek ale dáme jen git.

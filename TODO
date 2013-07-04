@@ -1,0 +1,6 @@
+At future:
+	ACL
+	Relative repository
+	Manage user, repositories, konfigure by admin-repo, like gitolite
+	Manage wrapered ~/.ssh/authorized_keys
+
