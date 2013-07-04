@@ -23,52 +23,46 @@ namespace Taco\Tools\Stasi\Shell;
 /**
  *	Bázová třída, vracející formát json.
  */
-class OriginalCommand extends CommandAbstract implements CommandInterface
+abstract class CommandAbstract implements CommandInterface
 {
 
-	private $model;
+	private $logger;
 
 
 	/**
-	 *	Vytvoření objektu na základě parametrů z getu.
+	 * @param logovadlo.
+	 * @return fluent
 	 */
-	public function __construct(Model $model)
+	public function setLogger(LoggerInterface $logger)
 	{
-		$this->model = $model;
+		$this->logger = $logger;
+		return $this;
 	}
 
 
 
 	/**
-	 *	Obálka na data.
+	 * Získání loggeru, nového, nebo oposledně vytvořeneého.
+	 * @return Logger
 	 */
-	public function createResponse(Request $request)
+	public function getLogger()
 	{
-		return new ExecResponse();
+		if (empty($this->logger)) {
+			$this->logger = $this->createLogger();
+		}
+		return $this->logger;
 	}
 
 
 
 	/**
-	 * @return Model
+	 * Vytvoření nového loggeru.
+	 * @return Logger
 	 */
-	public function getModel()
+	protected function createLogger()
 	{
-		return $this->model;
+		return new NullLogger();
 	}
-
-
-
-	/**
-	 *	Vytvoření odpovědi. Předpokládáme jen náhled.
-	 */
-	public function fetch(Request $request, ResponseInterface $response)
-	{
-		$response->setCommand($request->getCommand());
-		$this->getLogger()->trace('command', $request->getCommand());
-		return $response;
-	}
-
 
 
 }

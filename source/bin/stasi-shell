@@ -20,6 +20,7 @@ require_once __dir__ . '/../lib/Stasi/Shell/Model.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Router.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Request.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Dispatcher.php';
+require_once __dir__ . '/../lib/Stasi/Shell/Logger.php';
 
 //	Responses
 require_once __dir__ . '/../lib/Stasi/Shell/Responses/ResponseInterface.php';
@@ -28,6 +29,7 @@ require_once __dir__ . '/../lib/Stasi/Shell/Responses/ExecResponse.php';
 
 //	Commands
 require_once __dir__ . '/../lib/Stasi/Shell/Commands/CommandInterface.php';
+require_once __dir__ . '/../lib/Stasi/Shell/Commands/CommandAbstract.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Commands/OriginalCommand.php';
 
 
@@ -36,6 +38,8 @@ use Taco\Tools\Stasi\Shell;
 
 
 try {
+	$logger = new Shell\Logger('logs/stasi');
+
 	$router = new Shell\Router();
 	$request = $router->createRequest($_SERVER);
 
@@ -44,19 +48,13 @@ try {
 	$model = new Shell\Model();
 
 	$dispatcher = new Shell\Dispatcher($config, $model);
+	$dispatcher->setLogger($logger);
+	
 	$response = $dispatcher->dispatch($request);
 	$response->fetch();
 }
 catch (\Exception $e) {
-	echo $e->getMessage();
+	echo $e->getMessage() . PHP_EOL;
 	exit($e->getCode() > 0 ? $e->getCode() : 254);
 }
 
-
-file_put_contents('logs/ssh-request/' . date('Y-m-d_H-i-s') . '.log', print_r($GLOBALS, true));
-/*
-if (isset($_SERVER['SSH_ORIGINAL_COMMAND'])) {
-    file_put_contents('logs/original_command/' . date('Y-m-d_H-i-s') . '.log', print_r($_SERVER['SSH_ORIGINAL_COMMAND'], true));
-//    passthru($_SERVER['SSH_ORIGINAL_COMMAND']);
-}
-//*/

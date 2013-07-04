@@ -40,6 +40,12 @@ class Dispatcher
 
 
 	/**
+	 * Konfigurace.
+	 */
+	private $logger;
+
+
+	/**
 	 * @param $model, $config
 	 */
 	public function __construct(Config $config, Model $model)
@@ -50,8 +56,46 @@ class Dispatcher
 		if (empty($model)) {
 			throw new \InvalidArgumentException('model', 3);
 		}
+
 		$this->model = $model;
 		$this->config = $config;
+	}
+
+
+
+	/**
+	 * @param logovadlo.
+	 * @return fluent
+	 */
+	public function setLogger(LoggerInterface $logger)
+	{
+		$this->logger = $logger;
+		return $this;
+	}
+
+
+
+	/**
+	 * Získání loggeru, nového, nebo oposledně vytvořeneého.
+	 * @return Logger
+	 */
+	public function getLogger()
+	{
+		if (empty($this->logger)) {
+			$this->logger = $this->createLogger();
+		}
+		return $this->logger;
+	}
+
+
+
+	/**
+	 * Vytvoření nového loggeru.
+	 * @return Logger
+	 */
+	protected function createLogger()
+	{
+		return new NullLogger();
 	}
 
 
@@ -62,6 +106,8 @@ class Dispatcher
 	 */
 	public function dispatch(Request $request)
 	{
+		$this->getLogger()->trace('globals', $GLOBALS);
+		
 		$action = new OriginalCommand($this->model);
 
 		$response = $this->fireAction($request, $action);
