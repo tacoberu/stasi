@@ -16,7 +16,7 @@
  */
 
 
-namespace Taco\Tools\Stasi\Shell;
+namespace Taco\Tools\Stasi\Shell\Model;
 
 
 
@@ -28,6 +28,9 @@ class Acl
 {
 
 	private $user;
+	
+
+	private $userList = array();
 	
 
 	/**
@@ -61,6 +64,17 @@ class Acl
 	public function getUser()
 	{
 		return $this->user;
+	}
+
+
+
+	/**
+	 * @param 
+	 * @return ...
+	 */
+	public function allowUser(User $user)
+	{
+		$this->userList[] = $user->getIdent();
 	}
 
 }

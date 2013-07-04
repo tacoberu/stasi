@@ -27,5 +27,13 @@ class Config
 {
 	
 
+	/**
+	 * @param 
+	 * @return ...
+	 */
+	public function getAclFile()
+	{
+		return 'draft/access.xml';
+	}
 }
 

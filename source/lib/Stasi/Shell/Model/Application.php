@@ -16,7 +16,7 @@
  */
 
 
-namespace Taco\Tools\Stasi\Shell;
+namespace Taco\Tools\Stasi\Shell\Model;
 
 
 
@@ -24,7 +24,7 @@ namespace Taco\Tools\Stasi\Shell;
 /**
  *	Zpracovává příkazy na request.
  */
-class Model
+class Application
 {
 
 	private $acl;

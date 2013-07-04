@@ -16,7 +16,7 @@
  */
 
 
-namespace Taco\Tools\Stasi\Shell;
+namespace Taco\Tools\Stasi\Shell\Model;
 
 
 

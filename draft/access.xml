@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<staci:acl>
+<staci:acl xmlns:staci="http://example.org/staci"
+		xmlns:contact="http://example.org/contact">
 	<!--	
 		Skupina uživatelů
-		-->
+		- ->
 	<staci:group name="admins">
 		<staci:user ref="taco" />
 		<staci:user ref="mira" />
@@ -13,7 +14,7 @@
 		<staci:user ref="mira" />
 		<staci:user ref="fean" />
 	</staci:group>
-
+-->
 
 	<!--
 		Definice konkrétních uživatelů
@@ -36,6 +37,54 @@
 			<staci:permission>read</staci:permission>
 			<staci:permission>write</staci:permission>
 			<staci:permission>remove</staci:permission>
+		</staci:access>		
+
+	</staci:user>
+
+	<!--
+		Definice konkrétních uživatelů
+		-->
+	<staci:user name="mira">
+		<contact:firstname>Miroslav</contact:firstname>
+		<contact:lastname>Fidranský</contact:lastname>
+		<contact:email>mf@darkmay.cz</contact:email>
+		<staci:ssh type="dsa">ssh-dss AAAAB3NzaC1kc3MAAACBAIXclzahWltq96N5cz3Rftt2ZnsRic9P+LORiZUdr3ed+0EVjgIygr8PRfFjifGi37JPwzt/bLAsXk+Yo5rXFdlQyxFJMJHR7tjgYTyP6EtTuIqo2qgGYyz8f+Vun/AsS2ewbtJfXXDRQ23Wwkvyff6D3E+gK1otjZ2a6o4eKqlpAAAAFQD1r+q3a8h2dCe66YzLE9Dc87/KfwAAAIBHGll0FDBYj4hCYkchhrhBMQ7BoSiCPdEKG2VK9EW4JujOdgGo8PbF8z6wwxU5/MBxlpvlqdYRgkHtY/DMlQDTgdIDQxbI5e0ikIHBwhhqzvtYwhcapLjBIR1t3lVlKOCMgaQRTIOp2ykFyHQNT9cNhtXqsWqzMncHWTMsgbkarQAAAIBu2Nrjs7W/CpT8doR8wzQ7zISdSkwRAH+LqsaGTM2XtYJTymLVFEytiNPE55h+Rexo+OFI792KTuFTkUeKoACIopjgTZtoHqtEJZ5IxVsa2OqAsHbP6Svww+M76LbAvFMquYxyG954XI/D0jtQ66tl5l6yXMPCoEtM6WGJWo5vxA== taco@taco.darkmay.cz</staci:ssh>
+
+
+		<!--
+			Existují celkem čtyři skupiny práv: 
+				R jen pro čtení, 
+				RW čtení i zápis, 
+				RW+ přidá mazání, 
+				– pro zákaz přístupu
+			-->
+		<staci:access>
+			<staci:permission>read</staci:permission>
+			<staci:permission>write</staci:permission>
+			<staci:permission>remove</staci:permission>
+		</staci:access>		
+
+	</staci:user>
+
+	<!--
+		Definice konkrétních uživatelů
+		-->
+	<staci:user name="fean">
+		<contact:firstname>Andreaw</contact:firstname>
+		<contact:lastname>Fean</contact:lastname>
+		<contact:email>mt@darkmay.cz</contact:email>
+		<staci:ssh type="dsa">ssh-dss AAAAB3NzaC1kc3MAAACBAIXclzahWltq96N5cz3Rftt2ZnsRic9P+LORiZUdr3ed+0EVjgIygr8PRfFjifGi37JPwzt/bLAsXk+Yo5rXFdlQyxFJMJHR7tjgYTyP6EtTuIqo2qgGYyz8f+Vun/AsS2ewbtJfXXDRQ23Wwkvyff6D3E+gK1otjZ2a6o4eKqlpAAAAFQD1r+q3a8h2dCe66YzLE9Dc87/KfwAAAIBHGll0FDBYj4hCYkchhrhBMQ7BoSiCPdEKG2VK9EW4JujOdgGo8PbF8z6wwxU5/MBxlpvlqdYRgkHtY/DMlQDTgdIDQxbI5e0ikIHBwhhqzvtYwhcapLjBIR1t3lVlKOCMgaQRTIOp2ykFyHQNT9cNhtXqsWqzMncHWTMsgbkarQAAAIBu2Nrjs7W/CpT8doR8wzQ7zISdSkwRAH+LqsaGTM2XtYJTymLVFEytiNPE55h+Rexo+OFI792KTuFTkUeKoACIopjgTZtoHqtEJZ5IxVsa2OqAsHbP6Svww+M76LbAvFMquYxyG954XI/D0jtQ66tl5l6yXMPCoEtM6WGJWo5vxA== taco@taco.darkmay.cz</staci:ssh>
+
+
+		<!--
+			Existují celkem čtyři skupiny práv: 
+				R jen pro čtení, 
+				RW čtení i zápis, 
+				RW+ přidá mazání, 
+				– pro zákaz přístupu
+			-->
+		<staci:access>
+			<staci:permission>read</staci:permission>
 		</staci:access>		
 
 	</staci:user>

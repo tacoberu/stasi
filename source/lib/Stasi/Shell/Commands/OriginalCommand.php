@@ -37,7 +37,7 @@ class OriginalCommand extends CommandAbstract implements CommandInterface
 	/**
 	 *	Vytvoření objektu na základě parametrů z getu.
 	 */
-	public function __construct(Model $model)
+	public function __construct(ModelBuilder $model)
 	{
 		$this->model = $model;
 	}
@@ -69,10 +69,10 @@ class OriginalCommand extends CommandAbstract implements CommandInterface
 	 */
 	public function fetch(Request $request, ResponseInterface $response)
 	{
-		$this->getModel()->getAcl()->setUser(new User($request->getUser()));
+		$this->getModel()->getApplication()->getAcl()->setUser(new Model\User($request->getUser()));
 		$this->getLogger()->trace('request', $request);
 		$this->getLogger()->trace('command', $request->getCommand());
-		if ($this->getModel()->getAcl()->isAllowed()) {
+		if ($this->getModel()->getApplication()->getAcl()->isAllowed()) {
 			$response->setCommand($request->getCommand());
 			return $response;
 		}

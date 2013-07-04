@@ -48,7 +48,7 @@ class Dispatcher
 	/**
 	 * @param $model, $config
 	 */
-	public function __construct(Config $config, Model $model)
+	public function __construct(Config $config, ModelBuilder $model)
 	{
 		if (empty($config)) {
 			throw new \InvalidArgumentException('config', 2);
