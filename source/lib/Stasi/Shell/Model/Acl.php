@@ -24,19 +24,21 @@ namespace Taco\Tools\Stasi\Shell;
 /**
  *	Zpracovává příkazy na request.
  */
-class Model
+class Acl
 {
 
-	private $acl;
+	private $user;
 	
 
 	/**
 	 * Oprávnění.
 	 * @return Acl
 	 */
-	public function getAcl()
+	public function isAllowed()
 	{
-		return $this->acl;
+		return in_array($this->getUser()->getIdent(), array(
+				'taco', 'fean',
+				));
 	}
 
 
@@ -44,10 +46,21 @@ class Model
 	 * Oprávnění.
 	 * @return Acl
 	 */
-	public function setAcl(Acl $acl)
+	public function setUser(User $user)
 	{
-		$this->acl = $acl;
+		$this->user = $user;
 		return $this;
+	}
+
+
+
+	/**
+	 * Oprávnění.
+	 * @return Acl
+	 */
+	public function getUser()
+	{
+		return $this->user;
 	}
 
 }

@@ -16,7 +16,6 @@
 
 
 require_once __dir__ . '/../lib/Stasi/Shell/Config.php';
-require_once __dir__ . '/../lib/Stasi/Shell/Model.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Router.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Request.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Dispatcher.php';
@@ -32,6 +31,11 @@ require_once __dir__ . '/../lib/Stasi/Shell/Commands/CommandInterface.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Commands/CommandAbstract.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Commands/OriginalCommand.php';
 
+//	Models
+require_once __dir__ . '/../lib/Stasi/Shell/Model.php';
+require_once __dir__ . '/../lib/Stasi/Shell/Model/Acl.php';
+require_once __dir__ . '/../lib/Stasi/Shell/Model/User.php';
+
 
 use Taco\Tools\Stasi\Shell;
 
@@ -45,7 +49,9 @@ try {
 
 	$config = new Shell\Config();
 
+	$acl = new Shell\Acl();
 	$model = new Shell\Model();
+	$model->setAcl($acl);
 
 	$dispatcher = new Shell\Dispatcher($config, $model);
 	$dispatcher->setLogger($logger);

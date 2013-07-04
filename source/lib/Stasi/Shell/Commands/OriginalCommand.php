@@ -20,6 +20,11 @@ namespace Taco\Tools\Stasi\Shell;
 
 
 
+class AccessDeniedException extends \RuntimeException
+{}
+
+
+
 /**
  *	Bázová třída, vracející formát json.
  */
@@ -64,10 +69,14 @@ class OriginalCommand extends CommandAbstract implements CommandInterface
 	 */
 	public function fetch(Request $request, ResponseInterface $response)
 	{
-		$response->setCommand($request->getCommand());
+		$this->getModel()->getAcl()->setUser(new User($request->getUser()));
 		$this->getLogger()->trace('request', $request);
 		$this->getLogger()->trace('command', $request->getCommand());
-		return $response;
+		if ($this->getModel()->getAcl()->isAllowed()) {
+			$response->setCommand($request->getCommand());
+			return $response;
+		}
+		throw new AccessDeniedException("Access Denied for [{$request->getUser()}].", 5);
 	}
 
 
