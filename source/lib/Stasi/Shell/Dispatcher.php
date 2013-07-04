@@ -109,6 +109,7 @@ class Dispatcher
 		$this->getLogger()->trace('globals', $GLOBALS);
 		
 		$action = new OriginalCommand($this->model);
+		$action->setLogger($this->getLogger());
 
 		$response = $this->fireAction($request, $action);
 		
