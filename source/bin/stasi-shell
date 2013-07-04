@@ -57,6 +57,6 @@ catch (\Exception $e) {
 file_put_contents('logs/ssh-request/' . date('Y-m-d_H-i-s') . '.log', print_r($GLOBALS, true));
 if (isset($_SERVER['SSH_ORIGINAL_COMMAND'])) {
     file_put_contents('logs/original_command/' . date('Y-m-d_H-i-s') . '.log', print_r($_SERVER['SSH_ORIGINAL_COMMAND'], true));
-    passthru($_SERVER['SSH_ORIGINAL_COMMAND']);
+//    passthru($_SERVER['SSH_ORIGINAL_COMMAND']);
 }
 //*/
