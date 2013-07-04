@@ -65,6 +65,7 @@ class OriginalCommand extends CommandAbstract implements CommandInterface
 	public function fetch(Request $request, ResponseInterface $response)
 	{
 		$response->setCommand($request->getCommand());
+		$this->getLogger()->trace('request', $request);
 		$this->getLogger()->trace('command', $request->getCommand());
 		return $response;
 	}
