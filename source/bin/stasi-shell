@@ -1,14 +1,20 @@
 #!/usr/bin/env php
 <?php
 /**
- * gitolite shell, invoked from ~/.ssh/authorized_keys
+ * stasi shell, invoked from ~/.ssh/authorized_keys
+ *
+ * Wraper of ssh comunication.
+ * This is logging only.
+ *
+ * At future:
+ *	acl
+ *	relative repository
+ *	manage user, repositories, konfigure by admin-repo, like gitolite
+ *	manage wrapered ~/.ssh/authorized_keys
  */
 
-// echo "Toto je teprve začátek...\n\r";
 file_put_contents('logs/' . date('Y-m-d_H-i-s') . '_ssh-request.log', print_r($GLOBALS, true));
 if (isset($_SERVER['SSH_ORIGINAL_COMMAND'])) {
     file_put_contents('logs/original_command/' . date('Y-m-d_H-i-s') . '.log', print_r($_SERVER['SSH_ORIGINAL_COMMAND'], true));
     passthru($_SERVER['SSH_ORIGINAL_COMMAND']);
 }
-// passthru('ls');
-// exit(0);
