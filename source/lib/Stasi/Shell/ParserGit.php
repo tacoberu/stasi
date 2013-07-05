@@ -42,9 +42,9 @@ class ParserGit
 	 * Příkazy pro git.
 	 */
 	private static $commands = array(
-			'git-upload-pack' => Model\Acl::PERM_WRITE, 
-			'git-receive-pack' => Model\Acl::PERM_READ, 
-			'git-upload-archive' => Model\Acl::PERM_WRITE, 
+			'git-upload-pack' => Model\Acl::PERM_, 
+			'git-receive-pack' => Model\Acl::PERM_WRITE, 
+			'git-upload-archive' => Model\Acl::PERM_READ, 
 			);
 
 	/**

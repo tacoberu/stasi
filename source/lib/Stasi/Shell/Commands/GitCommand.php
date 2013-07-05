@@ -73,7 +73,16 @@ class GitCommand extends CommandAbstract implements CommandInterface
 			$response->setCommand($request->getCommand());
 			return $response;
 		}
-		throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot read from git repository.", 5);
+		switch ($request->getAccess()) {
+			case Model\Acl::PERM_READ:
+				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot read from git repository.", 5);
+			case Model\Acl::PERM_WRITE:
+				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot write to git repository.", 6);
+			case Model\Acl::PERM_REMOVE:
+				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot remove in git repository.", 7);
+			default:
+				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot access to git repository.", 8);
+		}
 	}
 
 
