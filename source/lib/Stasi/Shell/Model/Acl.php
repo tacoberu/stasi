@@ -39,9 +39,7 @@ class Acl
 	 */
 	public function isAllowed()
 	{
-		return in_array($this->getUser()->getIdent(), array(
-				'taco', 'fean',
-				));
+		return in_array($this->getUser(), $this->userList);
 	}
 
 
@@ -74,7 +72,7 @@ class Acl
 	 */
 	public function allowUser(User $user)
 	{
-		$this->userList[] = $user->getIdent();
+		$this->userList[] = $user;
 	}
 
 }

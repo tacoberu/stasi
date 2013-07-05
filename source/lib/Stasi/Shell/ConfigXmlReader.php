@@ -59,7 +59,6 @@ class ConfigXmlReader implements ConfigReaderInterface
 	{
 		$source = $this->getSource();
 		$response = array();
-
 		foreach ($source->xpath('staci:user') as $user) {
 			$entry = (object) array (
 					'ident' => (string)$user['name'],
@@ -100,6 +99,8 @@ class ConfigXmlReader implements ConfigReaderInterface
 	 */
 	private static function xmlContent($node, $xpath)
 	{
+		$node->registerXPathNamespace('staci', 'urn:nermal/staci');
+		$node->registerXPathNamespace('contact', 'urn:nermal/contact');
 		$el = $node->xpath($xpath);
 		if (isset($el[0])) {
 			return (string)$el[0];
