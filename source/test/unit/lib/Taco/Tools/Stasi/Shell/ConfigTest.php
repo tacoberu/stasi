@@ -24,7 +24,6 @@ use Taco\Tools\Stasi\Shell;
 
 
 /**
- *
  * @call phpunit ConfigTest.php tests_libs_taco_tools_Stasi_Shell_ConfigTest
  */
 class tests_libs_taco_tools_Stasi_Shell_ConfigTest extends PHPUnit_Framework_TestCase

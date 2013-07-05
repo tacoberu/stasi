@@ -81,23 +81,28 @@ class ModelBuilder
 	public function createAcl()
 	{
 		$acl = new Model\Acl();
-		$file = $this->config->getAclFile();
-		if (! file_exists($file)) {
-			throw new \InvalidArgumentException("File [$file] not found.");
-		}
-		$content = simplexml_load_file($file);
-		$content->registerXPathNamespace('staci', 'http://example.org/staci');
-		$content->registerXPathNamespace('contact', 'http://example.org/contact');
 
-		foreach ($content->xpath('staci:user') as $user) {
-			$user = new Model\User((string)$user['name']);
-#			print_r($user);
+		$configReader = $this->createAccessConfigurate();
+		foreach ($configReader->getUserList() as $user) {
+			$user = new Model\User($user->ident);
 			$acl->allowUser($user);
 		}
 		return $acl;
 	}
 
 
+
+	/**
+	 * @return ConfigReaderInterface
+	 */
+	private function createAccessConfigurate()
+	{
+		$file = $this->config->getAclFile();
+		if (! file_exists($file)) {
+			throw new \InvalidArgumentException("File [$file] not found.");
+		}
+		return new ConfigXmlReader($file);
+	}
 
 
 }
