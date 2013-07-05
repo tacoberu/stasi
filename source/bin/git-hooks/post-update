@@ -1,0 +1,16 @@
+#!/bin/sh
+#
+# An default hook script to prepare a packed repository for use over
+# dumb transports.
+#
+# To enable this hook, rename this file to "post-update".
+
+echo "== Post update =="
+if [ -n $GIT_DIR ]; then
+        unset GIT_DIR
+        cd ..
+fi
+
+echo "== Deploy =="
+#/home/dorzasadm/bin/phing deploy
+

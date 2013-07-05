@@ -73,21 +73,39 @@ class GitCommand extends CommandAbstract implements CommandInterface
 
 		$this->getLogger()->trace('command', $request->getCommand() . ' -> ' . $command);
 
-		if ($acl->isAllowed($request->getAccess())) {
-			$response->setCommand($command);
-			return $response;
-		}
-		switch ($request->getAccess()) {
-			case Model\Acl::PERM_INIT:
-				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot creating git repository.", 5);
-			case Model\Acl::PERM_READ:
-				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot read from git repository.", 5);
-			case Model\Acl::PERM_WRITE:
-				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot write to git repository.", 6);
-			case Model\Acl::PERM_REMOVE:
-				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot remove in git repository.", 7);
-			default:
-				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot access to git repository.", 8);
+		//	Ověření přístupů.
+		$this->assertAccess($request);
+
+		//	Ověření konzistence repozitáře. To znamená, zda
+		//	- je bare
+		//	- má nastavené defaultní hooky
+		//	- ...
+		$this->getModel()->getApplication()->doNormalizeRepository($this->prepareRepository($request->getCommand()), 'git');
+				
+		return $response->setCommand($command);
+	}
+
+
+
+	/**
+	 * @param int $mask
+	 */
+	private function assertAccess($request)
+	{
+		$acl = $this->getModel()->getApplication()->getAcl();
+		if (! $acl->isAllowed($request->getAccess())) {
+			switch ($request->getAccess()) {
+				case Model\Acl::PERM_INIT:
+					throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot creating git repository.", 5);
+				case Model\Acl::PERM_READ:
+					throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot read from git repository.", 5);
+				case Model\Acl::PERM_WRITE:
+					throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot write to git repository.", 6);
+				case Model\Acl::PERM_REMOVE:
+					throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot remove in git repository.", 7);
+				default:
+					throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot access to git repository.", 8);
+			}
 		}
 	}
 
@@ -111,6 +129,23 @@ class GitCommand extends CommandAbstract implements CommandInterface
 			return $res;
 		}
 		return $command;
+	}
+
+
+
+	/**
+	 * From command prepare repository
+	 *
+	 * @param string $command
+	 * @return string
+	 */
+	private function prepareRepository($command)
+	{
+		$model = $this->getModel()->getApplication();
+		if (preg_match('~([\w-]+\s+\')([^\']+)(\'.*)~',	$command, $matches)) {
+			return $model->getRepositoryPath() . '/' .  trim($matches[2], ' \\/'); 
+		}
+		throw new \RuntimeException('V příkazu není uvedena cesta k repozitáři.');
 	}
 
 }

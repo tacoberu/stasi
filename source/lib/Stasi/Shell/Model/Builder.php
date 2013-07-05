@@ -71,6 +71,7 @@ class ModelBuilder
 	public function createApplication()
 	{
 		$app = new Model\Application();
+		$app->setHomePath($this->config->getHomePath());
 		$app->setAcl($this->createAcl());
 		$app->setRepositoryPath($this->getConfigReader()->getRepoPath());
 		return $app;

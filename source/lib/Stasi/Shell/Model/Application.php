@@ -33,6 +33,9 @@ class Application
 	private $repositoryPath;
 	
 
+	private $homePath;
+	
+
 	/**
 	 * Oprávnění.
 	 * @return Acl
@@ -50,6 +53,21 @@ class Application
 	public function setAcl(Acl $acl)
 	{
 		$this->acl = $acl;
+		return $this;
+	}
+
+
+
+	/**
+	 * Cesta k úložišti repozitářů.
+	 * @return string
+	 */
+	function setHomePath($path)
+	{
+		if (empty($path)) {
+			throw new \InvalidArgumentException('Empty home path.');
+		}
+		$this->homePath = $path;
 		return $this;
 	}
 
@@ -79,6 +97,61 @@ class Application
 		return $this->repositoryPath;
 	}
 
+
+
+	/**
+	 * Ověření konzistence repozitáře. To znamená, zda
+	 * - je bare
+	 * - má nastavené defaultní hooky
+	 * - ...
+	 * @param string
+	 */
+	function doNormalizeRepository($repo, $type)
+	{
+		$full = $this->homePath . '/' . $repo;
+
+		//	Existence souboru
+		if (! is_writable($full)) {
+			throw new \RuntimeException("Repo [$repo] is not exists.");
+		}
+		
+		switch($type) {
+			case 'git':
+				$this->doNormalizeAssignHooksGit($full);
+				break;
+		}
+	}
+
+
+
+	/**
+	 * @param $fullrepo
+	 * @return boolean
+	 */
+	private function doNormalizeAssignHooksGit($fullrepo)
+	{
+		//	Post Receive
+		$postReceive = $fullrepo . '/' . '.git/hooks/post-receive';
+		$postReceiveTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-receive');
+		if (file_exists($postReceive) && (! is_link($postReceive) || readlink($postReceive) != $postReceiveTo)) {
+			rename($postReceive, $postReceive . '-original');
+		}
+		
+		if (! file_exists($postReceive)) {
+			symlink($postReceiveTo, $postReceive);
+		}
+		
+		//	Post Update
+		$postUpdate = $fullrepo . '/' . '.git/hooks/post-update';
+		$postUpdateTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-update');
+		if (file_exists($postUpdate) && (! is_link($postUpdate) || readlink($postUpdate) != $postUpdateTo)) {
+			rename($postUpdate, $postUpdate . '-original');
+		}
+		
+		if (! file_exists($postUpdate)) {
+			symlink($postUpdateTo, $postUpdate);
+		}
+	}
 
 }
 

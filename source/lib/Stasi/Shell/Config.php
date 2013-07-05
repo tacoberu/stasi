@@ -78,5 +78,24 @@ class Config
 	{
 		return '/var/log/stasi';
 	}
+
+
+
+	/**
+	 * Cesta ke kořeni domovského adresáře.
+	 *
+	 * @return string
+	 */
+	public function getHomePath()
+	{
+		if (isset($this->server['HOME'])) {
+			$pwd = rtrim($this->server['HOME'], '/\\');
+		}
+		return $pwd;
+	}
+
+
+
+
 }
 

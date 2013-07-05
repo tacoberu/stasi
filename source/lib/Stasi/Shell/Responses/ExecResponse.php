@@ -49,6 +49,7 @@ class ExecResponse implements ResponseInterface
 	function setCommand($command)
 	{
 		$this->command = $command;
+		return $this;
 	}
 
 
