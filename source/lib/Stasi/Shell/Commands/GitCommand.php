@@ -68,7 +68,11 @@ class GitCommand extends CommandAbstract implements CommandInterface
 		$acl = $this->getModel()->getApplication()->getAcl();
 		$acl->setUser(new Model\User($request->getUser()));
 		$this->getLogger()->trace('request', $request);
-		$this->getLogger()->trace('command', $request->getCommand());
+
+		$command = $this->maskedCommand($request->getCommand());
+
+		$this->getLogger()->trace('command', $request->getCommand() . ' -> ' . $command);
+
 		if ($acl->isAllowed($request->getAccess())) {
 			$response->setCommand($request->getCommand());
 			return $response;
@@ -88,6 +92,26 @@ class GitCommand extends CommandAbstract implements CommandInterface
 	}
 
 
+
+	/**
+	 * Nahrazuje repozitář. "git-upload-pack 'projects/stasi.git'"
+	 *
+	 * @param 
+	 * @return ...
+	 */
+	private function maskedCommand($command)
+	{
+		$model = $this->getModel()->getApplication();
+		if ($res = preg_replace_callback(
+				'~([\w-]+\s+\')([^\']+)(\'.*)~',
+				function ($matches) use ($model) {
+					return $matches[1] . $model->getProjectPath() . '/' .  trim($matches[2], ' \\/') . $matches[3]; 
+				},
+				$command)) {
+			return $res;
+		}
+		return $command;
+	}
 
 }
 

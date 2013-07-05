@@ -59,6 +59,21 @@ class Config
 	 *
 	 * @return string
 	 */
+	public function getEnvFile()
+	{
+		if (isset($this->server['HOME'])) {
+			$pwd = rtrim($this->server['HOME'], '/\\');
+		}
+		return $pwd . '/.config/stasi/env.xml';
+	}
+
+
+
+	/**
+	 * Cesta k souboru s nastavení acl.
+	 *
+	 * @return string
+	 */
 	public function getLogsPath()
 	{
 		return '/var/log/stasi';

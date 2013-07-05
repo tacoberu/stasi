@@ -53,7 +53,6 @@ class tests_libs_taco_tools_Stasi_Shell_ParserTest extends PHPUnit_Framework_Tes
 
 	/**
 	 *	Komunikace s existujícím repozitáře mercurialu.
-	 *	hg -R projects/test.hg serve --stdio
 	 */
 	public function testAny()
 	{

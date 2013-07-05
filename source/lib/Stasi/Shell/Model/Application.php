@@ -50,5 +50,17 @@ class Application
 		return $this;
 	}
 
+
+
+	/**
+	 * Cesta k úložišti repozitářů.
+	 * @return string
+	 */
+	function getProjectPath()
+	{
+		return 'repo';
+	}
+
+
 }
 

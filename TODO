@@ -1,8 +1,8 @@
-At future:
-	ACL
-	Relative repository
-	Manage user, repositories, konfigure by admin-repo, like gitolite
-	Manage wrapered ~/.ssh/authorized_keys
-
-
-touch 9
+- Relative repository
+- ACL rozlišování u uživatelů, oprávnění čtení a zápis u mercurialu.
+- Přepsání do D
+- Manage wrapered ~/.ssh/authorized_keys
+- Manage user, repositories, konfigure by admin-repo, like gitolite
+- Obsluhy pro hooky.
+- Instalační balíček.
+- Build
