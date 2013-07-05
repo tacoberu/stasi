@@ -77,7 +77,7 @@ class OriginalCommand extends CommandAbstract implements CommandInterface
 			$response->setCommand($request->getCommand());
 			return $response;
 		}
-		throw new AccessDeniedException("Access Denied for [{$request->getUser()}].", 5);
+		throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot sign-in.", 5);
 	}
 
 

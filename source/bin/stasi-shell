@@ -49,7 +49,7 @@ try {
 	$logger = new Shell\Logger($config->getLogsPath());
 }
 catch (\Exception $e) {
-	file_put_contents('php://stderr', '[error]: ' . $e->getMessage() . PHP_EOL);
+	file_put_contents('php://stderr', '[fatal] (Staci): cannot initialize - ' . $e->getMessage() . PHP_EOL);
 	exit($e->getCode() > 0 ? $e->getCode() : 254);
 }
 
@@ -64,7 +64,7 @@ try {
 	$response->fetch();
 }
 catch (\Exception $e) {
-	file_put_contents('php://stderr', '[failed]: ' . $e->getMessage() . PHP_EOL);
+	file_put_contents('php://stderr', '[fatal] (Staci): ' . $e->getMessage() . PHP_EOL);
 	$logger->trace('failed', $e->getMessage());
 	exit($e->getCode() > 0 ? $e->getCode() : 254);
 }
