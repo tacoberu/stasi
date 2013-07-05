@@ -69,10 +69,11 @@ class OriginalCommand extends CommandAbstract implements CommandInterface
 	 */
 	public function fetch(Request $request, ResponseInterface $response)
 	{
-		$this->getModel()->getApplication()->getAcl()->setUser(new Model\User($request->getUser()));
+		$acl = $this->getModel()->getApplication()->getAcl();
+		$acl->setUser(new Model\User($request->getUser()));
 		$this->getLogger()->trace('request', $request);
 		$this->getLogger()->trace('command', $request->getCommand());
-		if ($this->getModel()->getApplication()->getAcl()->isAllowed()) {
+		if ($acl->isAllowed($acl::PERM_SIGNIN)) {
 			$response->setCommand($request->getCommand());
 			return $response;
 		}
