@@ -105,7 +105,7 @@ class GitCommand extends CommandAbstract implements CommandInterface
 		if ($res = preg_replace_callback(
 				'~([\w-]+\s+\')([^\']+)(\'.*)~',
 				function ($matches) use ($model) {
-					return $matches[1] . $model->getProjectPath() . '/' .  trim($matches[2], ' \\/') . $matches[3]; 
+					return $matches[1] . $model->getRepositoryPath() . '/' .  trim($matches[2], ' \\/') . $matches[3]; 
 				},
 				$command)) {
 			return $res;

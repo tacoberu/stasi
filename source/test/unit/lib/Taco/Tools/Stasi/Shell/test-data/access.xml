@@ -72,4 +72,13 @@
 
 	</st:user>
 
+
+	<!--
+		Nastavení serveru.
+		-->
+	<st:setting>
+		<st:repo-path>repository</st:repo-path>
+	</st:setting>
+
+
 </st:acl>

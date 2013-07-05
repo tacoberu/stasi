@@ -32,7 +32,7 @@ class tests_libs_taco_tools_Stasi_Shell_ConfigXmlReaderTest extends PHPUnit_Fram
 
 
 	/**
-	 *	I prázdné hodnoty jsou validní.
+	 *	Neplatný soubor.
 	 */
 	public function testFail()
 	{
@@ -48,16 +48,27 @@ class tests_libs_taco_tools_Stasi_Shell_ConfigXmlReaderTest extends PHPUnit_Fram
 
 
 	/**
-	 *	I prázdné hodnoty jsou validní.
+	 *	Seznam uživatelů.
 	 */
 	public function testUsers()
 	{
 		$pom = new Shell\ConfigXmlReader(__dir__ . '/test-data/access.xml');
 		$this->assertEquals(array(
-				(object) array('ident' => 'taco', 'firstname' => 'Martin', 'lastname' => 'Takáč', 'email' => 'mt@darkmay.cz', 'permission' => array('read', 'write', 'remove', 'sign-in', )),
+				(object) array('ident' => 'taco', 'firstname' => 'Martin', 'lastname' => 'Takáč', 'email' => 'mt@darkmay.cz', 'permission' => array('init', 'read', 'write', 'remove', 'sign-in', )),
 				(object) array('ident' => 'mira', 'firstname' => Null, 'lastname' => Null, 'email' => 'mf@darkmay.cz', 'permission' => array('read', 'write', 'remove', )),
 				(object) array('ident' => 'fean', 'firstname' => 'Andreaw', 'lastname' => 'Fean', 'email' => 'mt@darkmay.cz', 'permission' => array('read')),
 				), $pom->getUserList());
+	}
+
+
+
+	/**
+	 *	Umístění repozitáře.
+	 */
+	public function testRepoPath()
+	{
+		$pom = new Shell\ConfigXmlReader(__dir__ . '/test-data/access.xml');
+		$this->assertEquals('repository', $pom->getRepoPath());
 	}
 
 

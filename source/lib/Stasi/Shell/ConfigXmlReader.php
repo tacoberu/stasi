@@ -83,6 +83,20 @@ class ConfigXmlReader implements ConfigReaderInterface
 
 
 	/**
+	 * @return ...
+	 */
+	public function getRepoPath()
+	{
+		$source = $this->getSource();
+		$path = $source->xpath('staci:setting/staci:repo-path');
+		if (isset($path[0])) {
+			return (string)$path[0];
+		}
+		throw new \RuntimeException('repo-path not setting');
+	}
+
+
+	/**
 	 *	Lazy loading configurace.
 	 */
 	private function getSource()

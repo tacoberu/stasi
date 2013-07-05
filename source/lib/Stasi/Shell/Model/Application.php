@@ -30,6 +30,9 @@ class Application
 	private $acl;
 	
 
+	private $repositoryPath;
+	
+
 	/**
 	 * Oprávnění.
 	 * @return Acl
@@ -56,9 +59,21 @@ class Application
 	 * Cesta k úložišti repozitářů.
 	 * @return string
 	 */
-	function getProjectPath()
+	function setRepositoryPath($path)
 	{
-		return 'repo';
+		$this->repositoryPath = $path;
+		return $this;
+	}
+
+
+
+	/**
+	 * Cesta k úložišti repozitářů.
+	 * @return string
+	 */
+	function getRepositoryPath()
+	{
+		return $this->repositoryPath;
 	}
 
 

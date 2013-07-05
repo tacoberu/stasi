@@ -31,6 +31,9 @@ class ModelBuilder
 	private $config;
 
 
+	private $configReader;
+
+
 	private $application;
 	
 
@@ -69,6 +72,7 @@ class ModelBuilder
 	{
 		$app = new Model\Application();
 		$app->setAcl($this->createAcl());
+		$app->setRepositoryPath($this->getConfigReader()->getRepoPath());
 		return $app;
 	}
 
@@ -81,9 +85,7 @@ class ModelBuilder
 	public function createAcl()
 	{
 		$acl = new Model\Acl();
-
-		$configReader = $this->createAccessConfigurate();
-		foreach ($configReader->getUserList() as $entry) {
+		foreach ($this->getConfigReader()->getUserList() as $entry) {
 			$user = new Model\User($entry->ident);
 			$user->setFirstName($entry->firstname);
 			$user->setLastName($entry->lastname);
@@ -100,7 +102,20 @@ class ModelBuilder
 	/**
 	 * @return ConfigReaderInterface
 	 */
-	private function createAccessConfigurate()
+	private function getConfigReader()
+	{
+		if (empty($this->configReader)) {
+			$this->configReader = $this->createConfigReader();
+		}
+		return $this->configReader;
+	}
+
+
+
+	/**
+	 * @return ConfigReaderInterface
+	 */
+	private function createConfigReader()
 	{
 		$file = $this->config->getAclFile();
 		if (! file_exists($file)) {
