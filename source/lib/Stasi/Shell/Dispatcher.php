@@ -108,7 +108,18 @@ class Dispatcher
 	{
 		$this->getLogger()->trace('globals', $GLOBALS);
 		
-		$action = new OriginalCommand($this->model);
+		//	Rozřazuje, zda se jedná o příkazy pro git, nebo pro mercurial, nebo nějaké předdefinované, a nebo obecné.
+		$parser = new Parser();
+		$parser->add(new ParserGit());
+		if ($adapter = $parser->parse($request)) {
+			$actionClassName = $adapter->getActionClassName();
+			$action = new $actionClassName($this->model);
+			$request->setAccess($adapter->getAccess());
+		}
+		else {
+			$action = new OriginalCommand($this->model);
+		}
+		
 		$action->setLogger($this->getLogger());
 
 		$response = $this->fireAction($request, $action);

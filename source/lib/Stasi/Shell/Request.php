@@ -35,6 +35,12 @@ class Request
 	 * Originální přžíkaz. O co se pokouší.
 	 */
 	private $command;
+	
+	
+	/**
+	 * Čteme, zapišujeme, ...
+	 */
+	private $access;
 
 
 	public function setUser($value)
@@ -61,6 +67,20 @@ class Request
 	public function getCommand()
 	{
 		return $this->command;
+	}
+
+
+	public function setAccess($value)
+	{
+		$this->access = $value;
+		return $this;
+	}
+
+
+
+	public function getAccess()
+	{
+		return $this->access;
 	}
 
 

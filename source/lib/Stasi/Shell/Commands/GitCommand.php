@@ -20,10 +20,11 @@ namespace Taco\Tools\Stasi\Shell;
 
 
 
+
 /**
  *	Bázová třída, vracející formát json.
  */
-class OriginalCommand extends CommandAbstract implements CommandInterface
+class GitCommand extends CommandAbstract implements CommandInterface
 {
 
 	private $model;
@@ -68,11 +69,11 @@ class OriginalCommand extends CommandAbstract implements CommandInterface
 		$acl->setUser(new Model\User($request->getUser()));
 		$this->getLogger()->trace('request', $request);
 		$this->getLogger()->trace('command', $request->getCommand());
-		if ($acl->isAllowed($acl::PERM_SIGNIN)) {
+		if ($acl->isAllowed($request->getAccess())) {
 			$response->setCommand($request->getCommand());
 			return $response;
 		}
-		throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot sign-in.", 5);
+		throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot read from git repository.", 5);
 	}
 
 
