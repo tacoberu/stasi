@@ -30,6 +30,15 @@ class User
 	private $ident;
 	
 
+	private $firstname;
+	
+
+	private $lastname;
+	
+
+	private $email;
+	
+
 	/**
 	 */
 	public function __construct($ident)
@@ -44,6 +53,60 @@ class User
 	{
 		return $this->ident;
 	}
+
+
+	/**
+	 */
+	public function getFirstName()
+	{
+		return $this->firstname;
+	}
+
+
+	/**
+	 */
+	public function getLastName()
+	{
+		return $this->lastname;
+	}
+
+
+	/**
+	 */
+	public function getEmail()
+	{
+		return $this->email;
+	}
+
+
+
+	/**
+	 */
+	public function setFirstName($val)
+	{
+		$this->firstname = $val;
+		return $this;
+	}
+
+
+	/**
+	 */
+	public function setLastName($val)
+	{
+		$this->lastname = $val;
+		return $this;
+	}
+
+
+	/**
+	 */
+	public function setEmail($val)
+	{
+		$this->email = $val;
+		return $this;
+	}
+
+
 
 }
 

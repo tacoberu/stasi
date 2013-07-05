@@ -83,8 +83,11 @@ class ModelBuilder
 		$acl = new Model\Acl();
 
 		$configReader = $this->createAccessConfigurate();
-		foreach ($configReader->getUserList() as $user) {
-			$user = new Model\User($user->ident);
+		foreach ($configReader->getUserList() as $entry) {
+			$user = new Model\User($entry->ident);
+			$user->setFirstName($entry->firstname);
+			$user->setLastName($entry->lastname);
+			$user->setEmail($entry->email);
 			$acl->allowUser($user);
 		}
 		return $acl;

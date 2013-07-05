@@ -63,6 +63,9 @@ class ConfigXmlReader implements ConfigReaderInterface
 		foreach ($source->xpath('staci:user') as $user) {
 			$entry = (object) array (
 					'ident' => (string)$user['name'],
+					'firstname' => self::xmlContent($user, 'contact:firstname'),
+					'lastname' => self::xmlContent($user, 'contact:lastname'),
+					'email' => self::xmlContent($user, 'contact:email'),
 					);
 			$response[] = $entry;
 		}
@@ -79,8 +82,8 @@ class ConfigXmlReader implements ConfigReaderInterface
 	{
 		if (empty($this->source)) {
 			$source = \simplexml_load_file($this->location);
-			$source->registerXPathNamespace('staci', 'http://example.org/staci');
-			$source->registerXPathNamespace('contact', 'http://example.org/contact');
+			$source->registerXPathNamespace('staci', 'urn:nermal/staci');
+			$source->registerXPathNamespace('contact', 'urn:nermal/contact');
 			$this->source = $source;
 		}
 
@@ -89,7 +92,19 @@ class ConfigXmlReader implements ConfigReaderInterface
 
 
 
-
+	/**
+	 * @param SimpleXmlElement xml uzel, ve kterém vyhledáváme.
+	 * @param stirng xpath Cesta.
+	 *
+	 * @return string
+	 */
+	private static function xmlContent($node, $xpath)
+	{
+		$el = $node->xpath($xpath);
+		if (isset($el[0])) {
+			return (string)$el[0];
+		}
+	}
 
 
 }
