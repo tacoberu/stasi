@@ -25,15 +25,31 @@ namespace Taco\Tools\Stasi\Shell;
  */
 class Config
 {
-	
+
+
+	private $server;
 
 	/**
-	 * @param 
-	 * @return ...
+	 * @param array $server Nastavení prostředí z $_SERVER
+	 */
+	public function __construct(array $server)
+	{
+		$this->server = $server;
+	}
+
+
+
+	/**
+	 * Cesta k souboru s nastavení acl.
+	 *
+	 * @return string
 	 */
 	public function getAclFile()
 	{
-		return 'draft/access.xml';
+		if (isset($this->server['PWD'])) {
+			$pwd = rtrim($this->server['PWD'], '/\\');
+		}
+		return $pwd . '/.config/stasi/access.xml';
 	}
 }
 
