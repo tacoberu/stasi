@@ -61,6 +61,9 @@ class Application
 	 */
 	function setRepositoryPath($path)
 	{
+		if (empty($path)) {
+			throw new \InvalidArgumentException('Empty repository path.');
+		}
 		$this->repositoryPath = $path;
 		return $this;
 	}
