@@ -23,20 +23,48 @@ namespace Taco\Tools\Stasi\Shell;
 /**
  *	Rozřazuje, zda se jedná o příkazy pro git, nebo pro mercurial, nebo nějaké předdefinované, a nebo obecné.
  */
-class Parser
+class ParserMercurial
 {
 
-	private $adapters = array();
-	
+	/**
+	 *	Poznačenej request.
+	 */
+	private $request;
+
 
 	/**
-	 * Příkazy pro git.
+	 * Matchne podle prvního parametru, zda je to naše.
+	 *
+	 * @return string
 	 */
-	private static $git = array(
-			'git-upload-pack', 
-			'git-receive-pack',
-			'git-upload-archive',
-			);
+	public function match($key)
+	{
+		if (strncmp($key, 'hg init', 7) === 0) {
+			return True;
+		}
+		//	hg -R projects/test.hg serve --stdio
+		elseif (strncmp($key, 'hg -R', 5) === 0 
+				&&	substr($key, -13) == 'serve --stdio' ) {
+			return True;
+		}
+		return False;
+	}
+
+
+
+	/**
+	 * Matchne podle prvního parametru, zda je to naše.
+	 *
+	 * @return string
+	 */
+	public function getAccess()
+	{
+		if (strncmp($this->request->getCommand(), 'hg init', 7) === 0) {
+			return Model\Acl::PERM_INIT;
+		}
+		return Model\Acl::PERM_EXISTS;
+	}
+
 
 
 	/**
@@ -44,9 +72,9 @@ class Parser
 	 *
 	 * @return string
 	 */
-	public function add($parser)
+	public function setRequest(Request $request)
 	{
-		$this->adapters[] = $parser;
+		$this->request = $request;
 		return $this;
 	}
 
@@ -57,15 +85,9 @@ class Parser
 	 *
 	 * @return string
 	 */
-	public function parse(Request $request)
+	public function getActionClassName()
 	{
-		$command = $request->getCommand();
-		$command = ltrim($command);
-		foreach ($this->adapters as $adapter) {
-			if ($adapter->match($command)) {
-				return $adapter->setRequest($request);
-			}
-		}
+		return __namespace__ . '\\MercurialCommand';
 	}
 
 

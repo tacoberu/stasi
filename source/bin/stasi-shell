@@ -24,6 +24,7 @@ require_once __dir__ . '/../lib/Stasi/Shell/Router.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Request.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Parser.php';
 require_once __dir__ . '/../lib/Stasi/Shell/ParserGit.php';
+require_once __dir__ . '/../lib/Stasi/Shell/ParserMercurial.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Dispatcher.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Logger.php';
 
@@ -37,6 +38,7 @@ require_once __dir__ . '/../lib/Stasi/Shell/Commands/CommandInterface.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Commands/CommandAbstract.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Commands/OriginalCommand.php';
 require_once __dir__ . '/../lib/Stasi/Shell/Commands/GitCommand.php';
+require_once __dir__ . '/../lib/Stasi/Shell/Commands/MercurialCommand.php';
 
 //	Models
 require_once __dir__ . '/../lib/Stasi/Shell/Model/Builder.php';

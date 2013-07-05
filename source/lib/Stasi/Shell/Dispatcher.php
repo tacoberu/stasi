@@ -111,6 +111,7 @@ class Dispatcher
 		//	Rozřazuje, zda se jedná o příkazy pro git, nebo pro mercurial, nebo nějaké předdefinované, a nebo obecné.
 		$parser = new Parser();
 		$parser->add(new ParserGit());
+		$parser->add(new ParserMercurial());
 		if ($adapter = $parser->parse($request)) {
 			$actionClassName = $adapter->getActionClassName();
 			$action = new $actionClassName($this->model);

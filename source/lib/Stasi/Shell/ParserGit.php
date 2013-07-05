@@ -31,12 +31,6 @@ class ParserGit
 	 */
 	private $request;
 
-	/**
-	 *	Poznačenej fragment commandu Bez parametrů.
-	 */
-	private $command;
-
-
 
 	/**
 	 * Příkazy pro git.
@@ -54,7 +48,8 @@ class ParserGit
 	 */
 	public function match($key)
 	{
-		return (array_key_exists($key, self::$commands));
+		$pair = explode(' ', $key, 2);
+		return (array_key_exists($pair[0], self::$commands));
 	}
 
 
@@ -66,7 +61,9 @@ class ParserGit
 	 */
 	public function getAccess()
 	{
-		return self::$commands[$this->command];
+		$command = $this->request->getCommand();
+		$pair = explode(' ', $command, 2);
+		return self::$commands[$pair[0]];
 	}
 
 
@@ -79,18 +76,6 @@ class ParserGit
 	public function setRequest(Request $request)
 	{
 		$this->request = $request;
-		return $this;
-	}
-
-
-
-	/**
-	 * @param 
-	 * @return ...
-	 */
-	public function setCommand($str)
-	{
-		$this->command = $str;
 		return $this;
 	}
 

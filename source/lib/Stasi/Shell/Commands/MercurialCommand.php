@@ -22,9 +22,9 @@ namespace Taco\Tools\Stasi\Shell;
 
 
 /**
- *	Bázová třída, vracející formát json.
+ *	
  */
-class GitCommand extends CommandAbstract implements CommandInterface
+class MercurialCommand extends CommandAbstract implements CommandInterface
 {
 
 	private $model;
@@ -75,15 +75,9 @@ class GitCommand extends CommandAbstract implements CommandInterface
 		}
 		switch ($request->getAccess()) {
 			case Model\Acl::PERM_INIT:
-				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot creating git repository.", 5);
-			case Model\Acl::PERM_READ:
-				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot read from git repository.", 5);
-			case Model\Acl::PERM_WRITE:
-				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot write to git repository.", 6);
-			case Model\Acl::PERM_REMOVE:
-				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot remove in git repository.", 7);
+				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot creating mercurial repository.", 5);
 			default:
-				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot access to git repository.", 8);
+				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot access to mercurial repository.", 8);
 		}
 	}
 

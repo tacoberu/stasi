@@ -35,6 +35,7 @@
 				shell: Může se přihlásit
 			-->
 		<st:access>
+			<st:permission>init</st:permission>
 			<st:permission>read</st:permission>
 			<st:permission>write</st:permission>
 			<st:permission>remove</st:permission>

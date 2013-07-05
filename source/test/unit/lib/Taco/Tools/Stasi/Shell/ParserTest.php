@@ -20,6 +20,7 @@
 require_once __dir__ . '/../../../../../../../lib/Stasi/Shell/Model/Acl.php';
 require_once __dir__ . '/../../../../../../../lib/Stasi/Shell/Parser.php';
 require_once __dir__ . '/../../../../../../../lib/Stasi/Shell/ParserGit.php';
+require_once __dir__ . '/../../../../../../../lib/Stasi/Shell/ParserMercurial.php';
 require_once __dir__ . '/../../../../../../../lib/Stasi/Shell/Request.php';
 
 
@@ -33,6 +34,39 @@ class tests_libs_taco_tools_Stasi_Shell_ParserTest extends PHPUnit_Framework_Tes
 {
 
 
+	private $parser;
+	
+	
+
+	/**
+	 * @param 
+	 * @return ...
+	 */
+	public function setUp()
+	{
+		$this->parser = new Shell\Parser();
+		$this->parser->add(new Shell\ParserGit());
+		$this->parser->add(new Shell\ParserMercurial());
+	}
+
+
+
+	/**
+	 *	Komunikace s existujícím repozitáře mercurialu.
+	 *	hg -R projects/test.hg serve --stdio
+	 */
+	public function testAny()
+	{
+		$request = new Shell\Request();
+		$request->setUser('foo');
+		$request->setCommand("ls -la");
+		
+		$adapter = $this->parser->parse($request);
+		$this->assertNull($adapter);
+	}
+
+
+
 	/**
 	 *	
 	 */
@@ -42,12 +76,10 @@ class tests_libs_taco_tools_Stasi_Shell_ParserTest extends PHPUnit_Framework_Tes
 		$request->setUser('foo');
 		$request->setCommand("git-upload-pack 'projects/stasi.git'");
 		
-		$p = new Shell\Parser();
-		$p->add(new Shell\ParserGit());
-		$adapter = $p->parse($request);
+		$adapter = $this->parser->parse($request);
 
 		$this->assertInstanceOf('Taco\Tools\Stasi\Shell\ParserGit', $adapter);
-		$this->assertEquals(Shell\Model\Acl::PERM_WRITE, $adapter->getAccess());
+		$this->assertEquals(Shell\Model\Acl::PERM_READ, $adapter->getAccess());
 	}
 
 
@@ -61,12 +93,10 @@ class tests_libs_taco_tools_Stasi_Shell_ParserTest extends PHPUnit_Framework_Tes
 		$request->setUser('foo');
 		$request->setCommand("git-upload-archive 'projects/stasi.git'");
 		
-		$p = new Shell\Parser();
-		$p->add(new Shell\ParserGit());
-		$adapter = $p->parse($request);
+		$adapter = $this->parser->parse($request);
 
 		$this->assertInstanceOf('Taco\Tools\Stasi\Shell\ParserGit', $adapter);
-		$this->assertEquals(Shell\Model\Acl::PERM_WRITE, $adapter->getAccess());
+		$this->assertEquals(Shell\Model\Acl::PERM_READ, $adapter->getAccess());
 	}
 
 
@@ -80,12 +110,46 @@ class tests_libs_taco_tools_Stasi_Shell_ParserTest extends PHPUnit_Framework_Tes
 		$request->setUser('foo');
 		$request->setCommand("git-receive-pack 'projects/stasi.git'");
 		
-		$p = new Shell\Parser();
-		$p->add(new Shell\ParserGit());
-		$adapter = $p->parse($request);
+		$adapter = $this->parser->parse($request);
 
 		$this->assertInstanceOf('Taco\Tools\Stasi\Shell\ParserGit', $adapter);
-		$this->assertEquals(Shell\Model\Acl::PERM_READ, $adapter->getAccess());
+		$this->assertEquals(Shell\Model\Acl::PERM_WRITE, $adapter->getAccess());
+	}
+
+
+
+	/**
+	 *	Vytvoření repozitáře mercurialu.
+	 *	hg init projects/test.hg
+	 */
+	public function testMercurialInit()
+	{
+		$request = new Shell\Request();
+		$request->setUser('foo');
+		$request->setCommand("hg init projects/test.hg");
+		
+		$adapter = $this->parser->parse($request);
+
+		$this->assertInstanceOf('Taco\Tools\Stasi\Shell\ParserMercurial', $adapter);
+		$this->assertEquals(Shell\Model\Acl::PERM_INIT, $adapter->getAccess());
+	}
+
+
+
+	/**
+	 *	Komunikace s existujícím repozitáře mercurialu.
+	 *	hg -R projects/test.hg serve --stdio
+	 */
+	public function testMercurialServe()
+	{
+		$request = new Shell\Request();
+		$request->setUser('foo');
+		$request->setCommand("hg -R projects/test.hg serve --stdio");
+		
+		$adapter = $this->parser->parse($request);
+
+		$this->assertInstanceOf('Taco\Tools\Stasi\Shell\ParserMercurial', $adapter);
+		$this->assertEquals(Shell\Model\Acl::PERM_EXISTS, $adapter->getAccess());
 	}
 
 

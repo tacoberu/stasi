@@ -58,6 +58,12 @@ class Acl
 
 	
 	/**
+	 * Může vytvářet nové repozitáře.
+	 */
+	const PERM_INIT = 32;
+
+	
+	/**
 	 * Přávě přihlášený uživatel.
 	 */
 	private $user;
