@@ -131,7 +131,7 @@ class Application
 	private function doNormalizeAssignHooksGit($fullrepo)
 	{
 		//	Post Receive
-		$postReceive = $fullrepo . '/' . '.git/hooks/post-receive';
+		$postReceive = $fullrepo . '/hooks/post-receive';
 		$postReceiveTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-receive');
 		if (file_exists($postReceive) && (! is_link($postReceive) || readlink($postReceive) != $postReceiveTo)) {
 			rename($postReceive, $postReceive . '-original');
@@ -142,7 +142,7 @@ class Application
 		}
 		
 		//	Post Update
-		$postUpdate = $fullrepo . '/' . '.git/hooks/post-update';
+		$postUpdate = $fullrepo . '/hooks/post-update';
 		$postUpdateTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-update');
 		if (file_exists($postUpdate) && (! is_link($postUpdate) || readlink($postUpdate) != $postUpdateTo)) {
 			rename($postUpdate, $postUpdate . '-original');
