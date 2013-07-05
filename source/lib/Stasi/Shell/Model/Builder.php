@@ -88,6 +88,8 @@ class ModelBuilder
 			$user->setFirstName($entry->firstname);
 			$user->setLastName($entry->lastname);
 			$user->setEmail($entry->email);
+			$user->setPermission(self::formatPermission($entry->permission));
+
 			$acl->allowUser($user);
 		}
 		return $acl;
@@ -107,6 +109,36 @@ class ModelBuilder
 		return new ConfigXmlReader($file);
 	}
 
+
+
+	/**
+	 * @param array $perms
+	 * @return int
+	 */
+	private static function formatPermission(array $perms)
+	{
+		$mask = Model\Acl::PERM_EXISTS;
+		foreach ($perms as $perm) {
+			switch (strtolower($perm)) {
+				case 'read':
+				case 'reads':
+					$mask |= Model\Acl::PERM_READ;
+					break;
+				case 'write':
+					$mask |= Model\Acl::PERM_WRITE;
+					break;
+				case 'remove':
+				case 'delete':
+					$mask |= Model\Acl::PERM_REMOVE;
+					break;
+				case 'shell':
+				case 'sign-in':
+					$mask |= Model\Acl::PERM_SIGNIN;
+					break;
+			}
+		}
+		return $mask;
+	}
 
 }
 

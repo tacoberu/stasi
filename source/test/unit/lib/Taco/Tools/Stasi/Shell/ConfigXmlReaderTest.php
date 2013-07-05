@@ -54,9 +54,9 @@ class tests_libs_taco_tools_Stasi_Shell_ConfigXmlReaderTest extends PHPUnit_Fram
 	{
 		$pom = new Shell\ConfigXmlReader(__dir__ . '/test-data/access.xml');
 		$this->assertEquals(array(
-				(object) array('ident' => 'taco', 'firstname' => 'Martin', 'lastname' => 'Takáč', 'email' => 'mt@darkmay.cz'),
-				(object) array('ident' => 'mira', 'firstname' => Null, 'lastname' => Null, 'email' => 'mf@darkmay.cz'),
-				(object) array('ident' => 'fean', 'firstname' => 'Andreaw', 'lastname' => 'Fean', 'email' => 'mt@darkmay.cz'),
+				(object) array('ident' => 'taco', 'firstname' => 'Martin', 'lastname' => 'Takáč', 'email' => 'mt@darkmay.cz', 'permission' => array('read', 'write', 'remove', 'sign-in', )),
+				(object) array('ident' => 'mira', 'firstname' => Null, 'lastname' => Null, 'email' => 'mf@darkmay.cz', 'permission' => array('read', 'write', 'remove', )),
+				(object) array('ident' => 'fean', 'firstname' => 'Andreaw', 'lastname' => 'Fean', 'email' => 'mt@darkmay.cz', 'permission' => array('read')),
 				), $pom->getUserList());
 	}
 

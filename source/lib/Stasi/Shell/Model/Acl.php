@@ -27,9 +27,45 @@ namespace Taco\Tools\Stasi\Shell\Model;
 class Acl
 {
 
+	/**
+	 * Stačí, když uživatel existuje.
+	 */
+	const PERM_EXISTS = 1;
+	
+	
+	/**
+	 * Uživatel může číst.
+	 */
+	const PERM_READ = 2;
+	
+	
+	/**
+	 * Může zapisovat
+	 */
+	const PERM_WRITE = 4;
+	
+	
+	/**
+	 * Mazání
+	 */
+	const PERM_REMOVE = 8;
+	
+	
+	/**
+	 * Může se přihlásit.
+	 */
+	const PERM_SIGNIN = 16;
+
+	
+	/**
+	 * Přávě přihlášený uživatel.
+	 */
 	private $user;
 	
 
+	/**
+	 * Seznam uživatelů s jejich právy.
+	 */
 	private $userList = array();
 	
 
@@ -37,9 +73,30 @@ class Acl
 	 * Oprávnění.
 	 * @return Acl
 	 */
-	public function isAllowed()
+	public function isAllowed($perm = self::PERM_EXISTS)
 	{
-		return in_array($this->getUser(), $this->userList);
+		if (! array_key_exists($this->getUser()->getIdent(), $this->userList)) {
+			return False;
+		}
+		if ($perm == self::PERM_EXISTS) {
+			return True;
+		}
+		$user = $this->userList[$this->getUser()->getIdent()];
+
+		if (($perm & self::PERM_READ) && !($user->getPermission() & self::PERM_READ)) {
+			return False;
+		}
+		if (($perm & self::PERM_WRITE) && !($user->getPermission() & self::PERM_WRITE)) {
+			return False;
+		}
+		if (($perm & self::PERM_REMOVE) && !($user->getPermission() & self::PERM_REMOVE)) {
+			return False;
+		}
+		if (($perm & self::PERM_SIGNIN) && !($user->getPermission() & self::PERM_SIGNIN)) {
+			return False;
+		}
+		
+		return True;
 	}
 
 
@@ -72,7 +129,7 @@ class Acl
 	 */
 	public function allowUser(User $user)
 	{
-		$this->userList[] = $user;
+		$this->userList[$user->getIdent()] = $user;
 	}
 
 }

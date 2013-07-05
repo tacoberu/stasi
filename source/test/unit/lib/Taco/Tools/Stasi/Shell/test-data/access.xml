@@ -38,7 +38,7 @@
 			<st:permission>read</st:permission>
 			<st:permission>write</st:permission>
 			<st:permission>remove</st:permission>
-			<st:permission>shell</st:permission>
+			<st:permission>sign-in</st:permission>
 		</st:access>		
 
 	</st:user>

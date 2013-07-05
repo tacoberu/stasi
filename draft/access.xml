@@ -38,7 +38,7 @@
 			<staci:permission>read</staci:permission>
 			<staci:permission>write</staci:permission>
 			<staci:permission>remove</staci:permission>
-			<staci:permission>shell</staci:permission>
+			<staci:permission>sign-in</staci:permission>
 		</staci:access>		
 
 	</staci:user>

@@ -39,6 +39,9 @@ class User
 	private $email;
 	
 
+	private $permission = 0;
+	
+
 	/**
 	 */
 	public function __construct($ident)
@@ -106,6 +109,26 @@ class User
 		return $this;
 	}
 
+
+	/**
+	 * @param int $mask
+	 * @return fluent
+	 */
+	public function setPermission($mask)
+	{
+		$this->permission = (int)$mask;
+		return $this;
+	}
+
+
+	/**
+	 * @param int $mask
+	 * @return fluent
+	 */
+	public function getPermission()
+	{
+		return $this->permission;
+	}
 
 
 }

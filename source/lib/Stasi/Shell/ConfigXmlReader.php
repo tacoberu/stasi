@@ -59,13 +59,21 @@ class ConfigXmlReader implements ConfigReaderInterface
 	{
 		$source = $this->getSource();
 		$response = array();
-		foreach ($source->xpath('staci:user') as $user) {
+		foreach ($source->xpath('staci:user') as $node) {
+			$node->registerXPathNamespace('staci', 'urn:nermal/staci');
+			$node->registerXPathNamespace('contact', 'urn:nermal/contact');
+
 			$entry = (object) array (
-					'ident' => (string)$user['name'],
-					'firstname' => self::xmlContent($user, 'contact:firstname'),
-					'lastname' => self::xmlContent($user, 'contact:lastname'),
-					'email' => self::xmlContent($user, 'contact:email'),
+					'ident' => (string)$node['name'],
+					'firstname' => self::xmlContent($node, 'contact:firstname'),
+					'lastname' => self::xmlContent($node, 'contact:lastname'),
+					'email' => self::xmlContent($node, 'contact:email'),
+					'permission' => array(),
 					);
+
+			foreach ($node->xpath('staci:access/staci:permission') as $perm) {
+				$entry->permission[] = (string)$perm;
+			}
 			$response[] = $entry;
 		}
 
@@ -99,8 +107,6 @@ class ConfigXmlReader implements ConfigReaderInterface
 	 */
 	private static function xmlContent($node, $xpath)
 	{
-		$node->registerXPathNamespace('staci', 'urn:nermal/staci');
-		$node->registerXPathNamespace('contact', 'urn:nermal/contact');
 		$el = $node->xpath($xpath);
 		if (isset($el[0])) {
 			return (string)$el[0];
