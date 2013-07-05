@@ -26,8 +26,14 @@ namespace Taco\Tools\Stasi\Shell;
 class ParserGit
 {
 
+	/**
+	 *	Poznačenej request.
+	 */
 	private $request;
 
+	/**
+	 *	Poznačenej fragment commandu Bez parametrů.
+	 */
 	private $command;
 
 
@@ -97,7 +103,7 @@ class ParserGit
 	 */
 	public function getActionClassName()
 	{
-		return __namespace__ . '\\Commands\\GitCommand';
+		return __namespace__ . '\\GitCommand';
 	}
 
 
