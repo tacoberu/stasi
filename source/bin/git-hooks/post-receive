@@ -17,3 +17,7 @@ echo "GIT_WORK_TREE: "$GIT_WORK_TREE;
 #	cd ..
 #fi
 #env -i git reset --hard
+
+
+GIT_WORK_TREE=/home/cia/build/stasi/ git checkout -f
+
