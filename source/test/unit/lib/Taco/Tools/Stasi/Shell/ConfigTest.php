@@ -34,11 +34,23 @@ class tests_libs_taco_tools_Stasi_Shell_ConfigTest extends PHPUnit_Framework_Tes
 	/**
 	 *	I prázdné hodnoty jsou validní.
 	 */
-	public function testEmpty()
+	public function testAclFile()
 	{
 		$config = new Shell\Config($this->getServer());
 		$this->assertEquals('/home/cia/.config/stasi/access.xml', $config->getAclFile());
 	}
+
+
+
+	/**
+	 *	I prázdné hodnoty jsou validní.
+	 */
+	public function testLogsPath()
+	{
+		$config = new Shell\Config($this->getServer());
+		$this->assertEquals('/var/log/stasi', $config->getLogsPath());
+	}
+
 
 
 	/**

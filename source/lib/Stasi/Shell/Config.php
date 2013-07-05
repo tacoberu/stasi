@@ -46,10 +46,22 @@ class Config
 	 */
 	public function getAclFile()
 	{
-		if (isset($this->server['PWD'])) {
-			$pwd = rtrim($this->server['PWD'], '/\\');
+		if (isset($this->server['HOME'])) {
+			$pwd = rtrim($this->server['HOME'], '/\\');
 		}
 		return $pwd . '/.config/stasi/access.xml';
+	}
+
+
+
+	/**
+	 * Cesta k souboru s nastavení acl.
+	 *
+	 * @return string
+	 */
+	public function getLogsPath()
+	{
+		return '/var/log/stasi';
 	}
 }
 

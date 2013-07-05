@@ -41,25 +41,27 @@ require_once __dir__ . '/../lib/Stasi/Shell/Model/User.php';
 use Taco\Tools\Stasi\Shell;
 
 
+try {
+	$config = new Shell\Config($_SERVER);
+	$logger = new Shell\Logger($config->getLogsPath());
+}
+catch (\Exception $e) {
+	echo '[ERROR] ' . $e->getMessage() . PHP_EOL;
+	exit($e->getCode() > 0 ? $e->getCode() : 254);
+}
+
 
 try {
-	$logger = new Shell\Logger('logs/stasi');
-
 	$router = new Shell\Router();
 	$request = $router->createRequest($_SERVER);
-
-	$config = new Shell\Config($_SERVER);
-
 	$modelBuilder = new Shell\ModelBuilder($config);
-
 	$dispatcher = new Shell\Dispatcher($config, $modelBuilder);
 	$dispatcher->setLogger($logger);
-	
 	$response = $dispatcher->dispatch($request);
 	$response->fetch();
 }
 catch (\Exception $e) {
-	echo $e->getMessage() . PHP_EOL;
+	$logger->trace('failed', $e->getMessage());
 	exit($e->getCode() > 0 ? $e->getCode() : 254);
 }
 
