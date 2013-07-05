@@ -1,8 +1,15 @@
-- Relative repository
-- ACL rozlišování u uživatelů, oprávnění čtení a zápis u mercurialu.
+- Obsluhy pro hooky.
+- Build
+- Instalační balíček.
 - Přepsání do D
+- ACL rozlišování u uživatelů, oprávnění čtení a zápis u mercurialu.
 - Manage wrapered ~/.ssh/authorized_keys
 - Manage user, repositories, konfigure by admin-repo, like gitolite
-- Obsluhy pro hooky.
-- Instalační balíček.
-- Build
+
+
+- Instalace
+	# setup, protože můžeme vytvářet na vícero uživatelích
+	# --user jméno uživatele
+	stasi setup --user cia
+
+- Přidání uživatele
