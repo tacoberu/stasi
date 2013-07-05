@@ -74,7 +74,7 @@ class GitCommand extends CommandAbstract implements CommandInterface
 		$this->getLogger()->trace('command', $request->getCommand() . ' -> ' . $command);
 
 		if ($acl->isAllowed($request->getAccess())) {
-			$response->setCommand($request->getCommand());
+			$response->setCommand($command);
 			return $response;
 		}
 		switch ($request->getAccess()) {
