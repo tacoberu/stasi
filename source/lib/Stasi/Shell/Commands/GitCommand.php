@@ -96,8 +96,8 @@ class GitCommand extends CommandAbstract implements CommandInterface
 	/**
 	 * Nahrazuje repozitář. "git-upload-pack 'projects/stasi.git'"
 	 *
-	 * @param 
-	 * @return ...
+	 * @param string $command
+	 * @return string
 	 */
 	private function maskedCommand($command)
 	{

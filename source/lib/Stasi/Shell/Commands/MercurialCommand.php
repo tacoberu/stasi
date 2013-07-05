@@ -68,9 +68,10 @@ class MercurialCommand extends CommandAbstract implements CommandInterface
 		$acl = $this->getModel()->getApplication()->getAcl();
 		$acl->setUser(new Model\User($request->getUser()));
 		$this->getLogger()->trace('request', $request);
-		$this->getLogger()->trace('command', $request->getCommand());
+		$command = $this->maskedCommand($request->getCommand());
+		$this->getLogger()->trace('command', $request->getCommand() . ' -> ' . $command);
 		if ($acl->isAllowed($request->getAccess())) {
-			$response->setCommand($request->getCommand());
+			$response->setCommand($command);
 			return $response;
 		}
 		switch ($request->getAccess()) {
@@ -79,6 +80,39 @@ class MercurialCommand extends CommandAbstract implements CommandInterface
 			default:
 				throw new AccessDeniedException("Access Denied for [{$request->getUser()}]. User cannot access to mercurial repository.", 8);
 		}
+	}
+
+
+
+	/**
+	 * Nahrazuje repozitář:
+	 *	hg init projects/test.hg
+	 *	hg -R projects/test.hg serve --stdio
+	 *
+	 * @param string $command
+	 * @return string
+	 */
+	private function maskedCommand($command)
+	{
+		$model = $this->getModel()->getApplication();
+		if (preg_match('~(hg\s+init\s+)([^\s]+)(.*)~', $command)) {
+			$command = preg_replace_callback(
+					'~(hg\s+init\s+)([^\s]+)(.*)~',
+					function ($matches) use ($model) {
+						return $matches[1] . $model->getRepositoryPath() . '/' .  trim($matches[2], ' \\/') . $matches[3]; 
+					},
+					$command);
+		}
+		else if (preg_match('~(hg\s+\-R\s+)([^\s]+)(.*)~', $command)) {
+			$command = preg_replace_callback(
+				'~(hg\s+\-R\s+)([^\s]+)(.*)~',
+				function ($matches) use ($model) {
+					return $matches[1] . $model->getRepositoryPath() . '/' .  trim($matches[2], ' \\/') . $matches[3]; 
+				},
+				$command);
+		}
+
+		return $command;
 	}
 
 
