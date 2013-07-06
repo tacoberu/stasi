@@ -16,6 +16,7 @@
 
 module stasi.config;
 
+import std.process;
 
 
 
@@ -54,10 +55,9 @@ class Config
 	 */
 	string getHomePath()
 	{
-		//if (isset($this->server['HOME'])) {
-			//$pwd = rtrim($this->server['HOME'], '/\\');
-		//}
-		return "abc";
+		string ret = environment.get("HOME");
+		//ret = rtrim(ret, '/\\');
+		return ret;
 	}
 
 

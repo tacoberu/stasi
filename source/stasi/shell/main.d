@@ -15,13 +15,14 @@
  */
 
 import std.stdio;
+import std.process;
 
 
 import taco.logging;
 import stasi.config;
 import stasi.routing;
-//import stasi.dispatcher;
-//import stasi.model;
+import stasi.dispatcher;
+import stasi.model;
 
 
 
@@ -33,10 +34,13 @@ import stasi.routing;
  */
 int main(string[] args)
 {
+	Config config;
+	Logger logger;
+
 	//	Inicializace
 	try {
-		Config config = new Config(args);
-		Logger logger = new Logger();
+		config = new Config(args);
+		logger = new Logger();
 		//logger.addListener(new FileWriter(config.getLogsPath()), new CommonFilter());
 	}
 	catch (Exception e) {
@@ -51,8 +55,8 @@ int main(string[] args)
 		Router router = new Router();
 		Request request = router.createRequest(args);
 		writefln(request.getUser());
-		//ModelBuilder modelBuilder = new ModelBuilder(config);
-		//Dispatcher dispatcher = new Dispatcher(config, modelBuilder);
+		ModelBuilder modelBuilder = new ModelBuilder(config);
+		Dispatcher dispatcher = new Dispatcher(config, modelBuilder);
 		//dispatcher.setLogger(logger);
 		//Response response = dispatcher.dispatch(request);
 		//response->fetch();

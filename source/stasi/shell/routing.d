@@ -18,6 +18,7 @@
 module stasi.routing;
 
 
+import std.process;
 
 
 
@@ -39,8 +40,7 @@ class Router
 		if (args.length > 1) {
 			request.setUser(args[1]);
 		}
-		//request.setUser(isset($server['argv'], $server['argv'][1]) ? $server['argv'][1] : Null);
-		//request.setCommand(isset($server['SSH_ORIGINAL_COMMAND']) ? $server['SSH_ORIGINAL_COMMAND'] : Null);
+		request.setCommand(environment.get("SSH_ORIGINAL_COMMAND"));
 
 		return request;
 	}

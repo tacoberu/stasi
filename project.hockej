@@ -89,6 +89,8 @@
 				source/stasi/shell/main.d \
 				source/stasi/shell/config.d \
 				source/stasi/shell/routing.d \
+				source/stasi/shell/model.d \
+				source/stasi/shell/dispatcher.d \
 				-unittest \
 				</task>
 		</goal>
@@ -103,6 +105,8 @@
 				source/stasi/shell/main.d \
 				source/stasi/shell/config.d \
 				source/stasi/shell/routing.d \
+				source/stasi/shell/model.d \
+				source/stasi/shell/dispatcher.d \
 				</task>
 		</goal>
 
