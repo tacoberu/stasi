@@ -6,11 +6,13 @@
 		Pod tímto se hledá v repozitářích.
 		-->
 	<identification>
-		<name>hockej</name>
+		<name>stasi</name>
 		<vendor>taco</vendor>
 		<author>Martin Takáč</author>
 		<version>0.0.1</version>
-		<description>Builder sám na sebe.</description>
+		<description>Proxy pro přístup k repozitářům ve smyslu gitolite,
+			nebo gitlab. Podporuje vícero DVS. V základu git a mercurial.
+			</description>
 	</identification>
 
 	<!--
@@ -60,7 +62,7 @@
 	<goals>
 
 		<goal name="update"
-				description="Aktualizace repozitáře a aktualizace vendor pomocí composeru."
+				description="Aktualizace repozitáře."
 				>
 			<task type="common.echo">Spouštíme update</task>
 			<task type="vcs.pull"/>
@@ -82,14 +84,13 @@
 		<goal name="test"
 				description="Přeložení na unittesty."
 				>
-			<task type="common.exec">dmd src/main.d  src/hockej/schema.d src/hockej/types.d  \
-		src/hockej/model.d src/hockej/task.d \
-		src/hockej/io.d src/hockej/parser.d src/hockej/application.d \
-		src/hockej/tasks/common.d \
-		-unittest</task>
-<!--
-			<task type="common.exec">./main</task>
--->
+			<task type="common.exec">dmd -oftest \
+				source/taco/logging/logger.d \
+				source/stasi/shell/main.d \
+				source/stasi/shell/config.d \
+				source/stasi/shell/routing.d \
+				-unittest \
+				</task>
 		</goal>
 
 
@@ -97,25 +98,12 @@
 				description="Překlad projektu."
 				>
 			<task type="common.echo">Spouštíme compile</task>
-
-			<!--
-			Toto by mělo zvlánout všechno přeložit. Ale zatím to suplujeme následujícím exec taskem.
-			<task type="compilers.compile">
-				<language>D</language>
-				<compiler>dmd</compiler>
-				<source>
-					<basedir>src</basedir>
-					<filter>
-						<mask>*.d</mask>
-					</filter>
-				</source>
-			</task>
-				-->
-
-			<task type="common.exec">dmd src/main.d  src/hockej/schema.d src/hockej/types.d  \
-		src/hockej/model.d src/hockej/task.d \
-		src/hockej/io.d src/hockej/parser.d src/hockej/application.d \
-		src/hockej/tasks/common.d</task>
+			<task type="common.exec">dmd -ofstasi-shell \
+				source/taco/logging/logger.d \
+				source/stasi/shell/main.d \
+				source/stasi/shell/config.d \
+				source/stasi/shell/routing.d \
+				</task>
 		</goal>
 
 
@@ -123,9 +111,8 @@
 				description="Překlad všeho."
 				depends="test, compile, clean"
 				>
-			<task type="common.echo">Spouštíme build</task>
 			<task type="common.exec">mkdir -p build</task>
-			<task type="common.exec">mv main build/hockej</task>
+			<task type="common.exec">mv stasi-shell build/stasi-shell</task>
 		</goal>
 
 
@@ -133,6 +120,13 @@
 				description="Odstranění .o souborů."
 				>
 			<task type="common.exec">rm *.o</task>
+		</goal>
+
+
+		<goal name="run"
+				description="Spuštění aplikace."
+				>
+			<task type="common.exec">build/stasi-shell</task>
 		</goal>
 
 
