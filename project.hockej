@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="1.0">
+
+	<!--
+		Identifikace projektu: jméno, vendor, verze. Globálně jedinečné.
+		Pod tímto se hledá v repozitářích.
+		-->
+	<identification>
+		<name>hockej</name>
+		<vendor>taco</vendor>
+		<author>Martin Takáč</author>
+		<version>0.0.1</version>
+		<description>Builder sám na sebe.</description>
+	</identification>
+
+	<!--
+		Definice cest, hesel, url, čehokoliv dalšího, na co se odkazují
+		osatní sekce, nejčastěji behavior. Teoreticky zde nemusí být nic,
+		ale behavior tasky budou požadovat nějaké informace, a ty se tedy
+		uvedou zde. Například existuje target Dependenci.Php, který zajištuje
+		uspokojení závislostí pro tento projekt. A seznam požadovaných závislostí
+		se uvede zde do definice pod klíč "php". Taky může být použit target
+		Dependeci.Javascript, který se analogicky stará o závislosti javascriptu.
+
+		Uzel definition obsahuje uzle define, které jsou reprezentací interního
+		typu uvedeného atributem type. Type může být například:
+			- numeric: číslo
+			- string: řetězec
+			- file: soubor
+			- directory: adresář
+			- fileset: soubor souborů
+			a další
+
+		Každý task má ve své definici uvedeno, jaké define vyžaduje. Tyto
+		udaje se dají vylistovat. Jinak se podle nich validuje.
+		-->
+	<definition>
+		<!--
+			task vcs.pull vyžaduje definici typu repozitáře.
+			-->
+		<define type="vcs.repository" name="code.repository">
+			<type>git</type>
+			<remote-push>ssh://example.org/projects/sample</remote-push>
+		</define>
+
+		<!--
+			-->
+		<define type="compiler.d" name="compile">
+			<source>src</source>
+		</define>
+
+	</definition>
+
+	<!--
+		behavior/scénář/targets — co to umí, jako překlad, deploing, verzování
+		pomocí git/hg a podobně. Jednotlivé goaly mají závislosti na definition,
+		dependencies, a jsou tagovány pro eventy (výcero), na eventy jsou
+		tvořeny i závislosti.
+		-->
+	<goals>
+
+		<goal name="update"
+				description="Aktualizace repozitáře a aktualizace vendor pomocí composeru."
+				>
+			<task type="common.echo">Spouštíme update</task>
+			<task type="vcs.pull"/>
+			<task type="vcs.update" />
+			<task type="common.exec">git fetch</task>
+			<task type="common.exec">git pull</task>
+		</goal>
+
+
+		<goal name="push"
+				description="Odeslání změn."
+				>
+			<task type="common.echo">Spouštíme push</task>
+			<task type="vcs.push"/>
+		</goal>
+
+
+
+		<goal name="test"
+				description="Přeložení na unittesty."
+				>
+			<task type="common.exec">dmd src/main.d  src/hockej/schema.d src/hockej/types.d  \
+		src/hockej/model.d src/hockej/task.d \
+		src/hockej/io.d src/hockej/parser.d src/hockej/application.d \
+		src/hockej/tasks/common.d \
+		-unittest</task>
+<!--
+			<task type="common.exec">./main</task>
+-->
+		</goal>
+
+
+		<goal name="compile"
+				description="Překlad projektu."
+				>
+			<task type="common.echo">Spouštíme compile</task>
+
+			<!--
+			Toto by mělo zvlánout všechno přeložit. Ale zatím to suplujeme následujícím exec taskem.
+			<task type="compilers.compile">
+				<language>D</language>
+				<compiler>dmd</compiler>
+				<source>
+					<basedir>src</basedir>
+					<filter>
+						<mask>*.d</mask>
+					</filter>
+				</source>
+			</task>
+				-->
+
+			<task type="common.exec">dmd src/main.d  src/hockej/schema.d src/hockej/types.d  \
+		src/hockej/model.d src/hockej/task.d \
+		src/hockej/io.d src/hockej/parser.d src/hockej/application.d \
+		src/hockej/tasks/common.d</task>
+		</goal>
+
+
+		<goal name="build"
+				description="Překlad všeho."
+				depends="test, compile, clean"
+				>
+			<task type="common.echo">Spouštíme build</task>
+			<task type="common.exec">mkdir -p build</task>
+			<task type="common.exec">mv main build/hockej</task>
+		</goal>
+
+
+		<goal name="clean"
+				description="Odstranění .o souborů."
+				>
+			<task type="common.exec">rm *.o</task>
+		</goal>
+
+
+	</goals>
+
+</project>
