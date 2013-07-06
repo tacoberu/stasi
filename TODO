@@ -1,4 +1,8 @@
 - Obsluhy pro hooky.
+	- Git 
+		- Struktura bare
+		- Příznak bare vypnut
+		- Nastavený worktree v configu podle xml
 - Build
 - Instalační balíček.
 - Přepsání do D
