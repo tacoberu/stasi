@@ -44,9 +44,7 @@ int main(string[] args)
 		//logger.addListener(new FileWriter(config.getLogsPath()), new CommonFilter());
 	}
 	catch (Exception e) {
-		//file_put_contents('php://stderr', '[fatal] (Staci): cannot initialize - ' . $e->getMessage() . PHP_EOL);
-		//exit($e->getCode() > 0 ? $e->getCode() : 254);
-		writefln("catch %s", e.msg);
+		stderr.write("[fatal] (Staci): cannot initialize - %s", e.msg);
 		return 1;
 	}
 
@@ -60,8 +58,8 @@ int main(string[] args)
 				.fetch();
 	}
 	catch (Exception e) {
-		//file_put_contents('php://stderr', '[fatal] (Staci): ' . $e->getMessage() . PHP_EOL);
-		//logger->trace('failed', $e->getMessage());
+		stderr.write("[fatal] (Staci): %s", e.msg);
+		//logger.trace('failed', e.msg);
 		return 2;
 	}
 
