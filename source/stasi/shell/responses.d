@@ -18,6 +18,7 @@
 module stasi.responses;
 
 import std.stdio;
+import std.process;
 
 
 /**
@@ -54,7 +55,7 @@ class ExecResponse : IResponse
 	int fetch()
 	{
 		if (this.command) {
-			writefln(this.command);
+			writefln(std.process.shell(this.command));
 		}
 		return 0;
 	}

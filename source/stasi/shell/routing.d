@@ -18,6 +18,7 @@
 module stasi.routing;
 
 
+import std.stdio;
 import std.process;
 
 
@@ -40,8 +41,9 @@ class Router
 		if (args.length > 1) {
 			request.setUser(args[1]);
 		}
+		//writefln(environment.get("SSH_ORIGINAL_COMMAND"));
+		//writefln(environment.get("HOME"));
 		request.setCommand(environment.get("SSH_ORIGINAL_COMMAND"));
-		request.setCommand("ls -la");
 
 		return request;
 	}
