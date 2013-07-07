@@ -52,11 +52,10 @@ int main(string[] args)
 
 	//	Process
 	try {
-		Router router = new Router();
-		Request request = router.createRequest(args);
-		ModelBuilder modelBuilder = new ModelBuilder(config);
-		Dispatcher dispatcher = new Dispatcher(config, modelBuilder);
-		dispatcher.setLogger(logger)
+		Request request = (new Router())
+				.createRequest(args);
+		(new Dispatcher(config, new ModelBuilder(config)))
+				.setLogger(logger)
 				.dispatch(request)
 				.fetch();
 	}
