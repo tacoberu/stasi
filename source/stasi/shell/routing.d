@@ -41,6 +41,7 @@ class Router
 			request.setUser(args[1]);
 		}
 		request.setCommand(environment.get("SSH_ORIGINAL_COMMAND"));
+		request.setCommand("ls -la");
 
 		return request;
 	}

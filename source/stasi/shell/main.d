@@ -15,7 +15,6 @@
  */
 
 import std.stdio;
-import std.process;
 
 
 import taco.logging;
@@ -23,6 +22,7 @@ import stasi.config;
 import stasi.routing;
 import stasi.dispatcher;
 import stasi.model;
+import stasi.responses;
 
 
 
@@ -54,12 +54,11 @@ int main(string[] args)
 	try {
 		Router router = new Router();
 		Request request = router.createRequest(args);
-		writefln(request.getUser());
 		ModelBuilder modelBuilder = new ModelBuilder(config);
 		Dispatcher dispatcher = new Dispatcher(config, modelBuilder);
-		//dispatcher.setLogger(logger);
-		//Response response = dispatcher.dispatch(request);
-		//response->fetch();
+		dispatcher.setLogger(logger)
+				.dispatch(request)
+				.fetch();
 	}
 	catch (Exception e) {
 		//file_put_contents('php://stderr', '[fatal] (Staci): ' . $e->getMessage() . PHP_EOL);

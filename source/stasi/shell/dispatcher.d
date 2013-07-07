@@ -21,6 +21,8 @@ import taco.logging;
 import stasi.config;
 import stasi.model;
 import stasi.routing;
+import stasi.commands;
+import stasi.responses;
 
 
 
@@ -102,29 +104,29 @@ class Dispatcher
 	 * Vytvoření odpovědi. Předpokládáme jen náhled.
 	 * @return Response
 	 */
-	void dispatch(Request request)
+	IResponse dispatch(Request request)
 	{
+		ICommand action;
 		//this.getLogger().trace('globals', GLOBALS);
 
-		/*/	Rozřazuje, zda se jedná o příkazy pro git, nebo pro mercurial, nebo nějaké předdefinované, a nebo přihlášení na server.
-		parser = new Parser();
-		parser.add(new ParserGit());
-		parser.add(new ParserMercurial());
-		if (adapter = parser.parse(request)) {
-			actionClassName = adapter.getActionClassName();
-			action = new actionClassName(this.model);
-			request.setAccess(adapter.getAccess());
-		}
-		else {
+		//	Rozřazuje, zda se jedná o příkazy pro git, nebo pro mercurial, nebo nějaké předdefinované, a nebo přihlášení na server.
+		//parser = new Parser();
+		//parser.add(new ParserGit());
+		//parser.add(new ParserMercurial());
+		//if (adapter = parser.parse(request)) {
+			//actionClassName = adapter.getActionClassName();
+			//action = new actionClassName(this.model);
+			//request.setAccess(adapter.getAccess());
+		//}
+		//else {
 			action = new OriginalCommand(this.model);
-		}
+		//}
 
 		action.setLogger(this.getLogger());
 
-		response = this.fireAction(request, action);
+		IResponse response = this.fireAction(request, action);
 
 		return response;
-		*/
 	}
 
 
@@ -132,18 +134,17 @@ class Dispatcher
 	/**
 	 * @param ActionInterface action
 	 * @return Response
-	 * /
-	private function fireAction(Request request, CommandInterface action)
+	 */
+	private IResponse fireAction(Request request, ICommand action)
 	{
 		//	Vytvoříme odpověď.
-		response = action.createResponse(request);
+		IResponse response = action.createResponse(request);
 
 		//	Odpověď naplníme daty.
 		response = action.fetch(request, response);
 
 		return response;
 	}
-	//*/
 
 }
 

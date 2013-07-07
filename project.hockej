@@ -84,13 +84,15 @@
 		<goal name="test"
 				description="Přeložení na unittesty."
 				>
-			<task type="common.exec">dmd -oftest \
+			<task type="common.exec">dmd -ofstasi-shell.test \
 				source/taco/logging/logger.d \
 				source/stasi/shell/main.d \
 				source/stasi/shell/config.d \
 				source/stasi/shell/routing.d \
 				source/stasi/shell/model.d \
 				source/stasi/shell/dispatcher.d \
+				source/stasi/shell/responses.d \
+				source/stasi/shell/commands.d \
 				-unittest \
 				</task>
 		</goal>
@@ -107,6 +109,8 @@
 				source/stasi/shell/routing.d \
 				source/stasi/shell/model.d \
 				source/stasi/shell/dispatcher.d \
+				source/stasi/shell/responses.d \
+				source/stasi/shell/commands.d \
 				</task>
 		</goal>
 
