@@ -18,9 +18,11 @@
 module stasi.commands;
 
 import taco.logging;
+import stasi.authentification;
 import stasi.model;
 import stasi.routing;
 import stasi.responses;
+import stasi.authentification;
 
 
 /**
@@ -102,7 +104,7 @@ abstract class AbstractCommand : ICommand
 
 
 /**
- *	Bázová třída, vracející formát json.
+ *	Propouští nezměněné příkazy, které nespravujeme.
  */
 class OriginalCommand : AbstractCommand
 {
@@ -145,17 +147,14 @@ class OriginalCommand : AbstractCommand
 	 */
 	IResponse fetch(Request request, IResponse response)
 	{
-		//response = cast(ExecResponse) response;
 		ExecResponse response2 = cast(ExecResponse) response;
-		//acl = this.getModel().getApplication().getAcl();
-		//acl.setUser(new Model\User(request.getUser()));
 		//this.getLogger().trace('request', request);
 		//this.getLogger().trace('command', request.getCommand());
-		//if (acl.isAllowed(acl::PERM_SIGNIN)) {
+		if (this.model.application.isAllowedSignin(new User(request.getUser()))) {
 			response2.setCommand(request.getCommand());
 			return response2;
-		//}
-		//throw new AccessDeniedException("Access Denied for [{request.getUser()}]. User cannot sign-in.", 5);
+		}
+		throw new AccessDeniedException("Access Denied for [{request.getUser()}]. User cannot sign-in.");
 	}
 
 

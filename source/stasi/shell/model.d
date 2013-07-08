@@ -19,7 +19,7 @@ module stasi.model;
 
 import stasi.config;
 
-
+import std.stdio;
 
 
 /**
@@ -30,10 +30,10 @@ class ModelBuilder
 
 	private Config config;
 
-	private Application application;
+	private Application _application;
 
 	/**
-	 * @param $model, $config
+	 * @param model, config
 	 */
 	this(Config config)
 	{
@@ -45,12 +45,12 @@ class ModelBuilder
 	/**
 	 * @return Application
 	 */
-	Application getApplication()
+	@property Application application() // const
 	{
-		if (! this.application) {
-			this.application = this.createApplication();
+		if (! this._application) {
+			this._application = this.createApplication();
 		}
-		return this.application;
+		return this._application;
 	}
 
 
@@ -64,6 +64,8 @@ class ModelBuilder
 		app.setHomePath(this.config.getHomePath());
 		//app.setAcl(this.createAcl());
 		//app.setRepositoryPath(this.config.getRepoPath());
+		writefln("fill users");
+		writefln("fill repos");
 		return app;
 	}
 
@@ -79,34 +81,33 @@ class ModelBuilder
 class Application
 {
 
-	//private acl;
+	/**
+	 * Seznam oprávnění.
+	 */
+	Acl[] acls;
 
 
+	/**
+	 * Cesta k defaultnímu umístění repozitářů.
+	 */
 	private string repositoryPath;
 
-
+	/**
+	 * Cesta k domácímu adresáři.
+	 */
 	private string homePath;
 
 
 	/**
-	 * Oprávnění.
-	 * @return Acl
-	 * /
-	public function getAcl()
-	{
-		return $this->acl;
-	}
+	 * Všechny uživatelé, kteří jsou k dispozici.
+	 */
+	User[] users;
 
 
 	/**
-	 * Oprávnění.
-	 * @return Acl
-	 * /
-	public function setAcl(Acl $acl)
-	{
-		$this->acl = $acl;
-		return $this;
-	}
+	 * Seznam repozitářů.
+	 */
+	Repository[] repositories;
 
 
 
@@ -123,10 +124,9 @@ class Application
 
 
 	/**
-	 * Cesta k úložišti repozitářů.
-	 * @return string
+	 * Cesta k defaultnímu úložišti repozitářů.
 	 */
-	Application setRepositoryPath(string path)
+	Application setDefaultRepositoryPath(string path)
 	{
 		this.repositoryPath = path;
 		return this;
@@ -136,13 +136,40 @@ class Application
 
 	/**
 	 * Cesta k úložišti repozitářů.
-	 * @return string
 	 */
-	string getRepositoryPath()
+	string getDefaultRepositoryPath()
 	{
 		return this.repositoryPath;
 	}
+	unittest {
+		Application app = (new Application()).setDefaultRepositoryPath("repos");
+		assert("repos", app.getDefaultRepositoryPath());
+	}
 
+
+
+	/**
+	 * Zda se uživatel může skrze shell přihlašovat na server.
+	 */
+	bool isAllowedSignin(User user)
+	{
+		return true;
+	}
+
+
+
+	/**
+	 * Zda uživatel může přistupovat k repozitáři.
+	 */
+	bool isAllowed(User user, Repository repository, Permission perm)
+	{
+		foreach (m; this.users) {
+			if (m.name == user.name) {
+				writefln(">> %s", m.name);
+			}
+		}
+		return false;
+	}
 
 
 	/**
@@ -152,18 +179,18 @@ class Application
 	 * - ...
 	 * @param string
 	 * /
-	function doNormalizeRepository($repo, $type)
+	function doNormalizeRepository(repo, type)
 	{
-		$full = $this->homePath . '/' . $repo;
+		full = this->homePath . '/' . repo;
 
 		//	Existence souboru
-		if (! is_writable($full)) {
-			throw new \RuntimeException("Repo [$repo] is not exists.");
+		if (! is_writable(full)) {
+			throw new \RuntimeException("Repo [repo] is not exists.");
 		}
 
-		switch($type) {
+		switch(type) {
 			case 'git':
-				$this->doNormalizeAssignHooksGit($full);
+				this->doNormalizeAssignHooksGit(full);
 				break;
 		}
 	}
@@ -171,31 +198,31 @@ class Application
 
 
 	/**
-	 * @param $fullrepo
+	 * @param fullrepo
 	 * @return boolean
 	 * /
-	private function doNormalizeAssignHooksGit($fullrepo)
+	private function doNormalizeAssignHooksGit(fullrepo)
 	{
 		//	Post Receive
-		$postReceive = $fullrepo . '/hooks/post-receive';
-		$postReceiveTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-receive');
-		if (file_exists($postReceive) && (! is_link($postReceive) || readlink($postReceive) != $postReceiveTo)) {
-			rename($postReceive, $postReceive . '-original');
+		postReceive = fullrepo . '/hooks/post-receive';
+		postReceiveTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-receive');
+		if (file_exists(postReceive) && (! is_link(postReceive) || readlink(postReceive) != postReceiveTo)) {
+			rename(postReceive, postReceive . '-original');
 		}
 
-		if (! file_exists($postReceive)) {
-			symlink($postReceiveTo, $postReceive);
+		if (! file_exists(postReceive)) {
+			symlink(postReceiveTo, postReceive);
 		}
 
 		//	Post Update
-		$postUpdate = $fullrepo . '/hooks/post-update';
-		$postUpdateTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-update');
-		if (file_exists($postUpdate) && (! is_link($postUpdate) || readlink($postUpdate) != $postUpdateTo)) {
-			rename($postUpdate, $postUpdate . '-original');
+		postUpdate = fullrepo . '/hooks/post-update';
+		postUpdateTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-update');
+		if (file_exists(postUpdate) && (! is_link(postUpdate) || readlink(postUpdate) != postUpdateTo)) {
+			rename(postUpdate, postUpdate . '-original');
 		}
 
-		if (! file_exists($postUpdate)) {
-			symlink($postUpdateTo, $postUpdate);
+		if (! file_exists(postUpdate)) {
+			symlink(postUpdateTo, postUpdate);
 		}
 	}
 
@@ -203,3 +230,120 @@ class Application
 	//*/
 }
 
+
+
+/**
+ *	Uživatel.
+ */
+class User
+{
+	private string _name;
+	string firstname;
+	string lastname;
+	string email;
+
+	this(string name)
+	{
+		this._name = name;
+	}
+
+
+	/**
+	 * Name read-only
+	 */
+	@property string name() // const
+	{
+		return this._name;
+	}
+	unittest {
+		assert("fean", (new User("fean")).name);
+	}
+
+}
+unittest {
+	User u = new User("taco");
+	assert("taco", u.name);
+	assert("taco", u.email);
+}
+
+
+
+/**
+ *	Skupina uživatelů.
+ */
+class Group
+{
+	string name;
+	User[] users;
+}
+
+
+
+/**
+ *	Typ repozitáře.
+ */
+enum RepositoryType
+{
+	GIT = 1,
+	MERCURIAL
+}
+
+
+
+/**
+ *	Repozitář.
+ */
+class Repository
+{
+	RepositoryType type;
+	
+	string name;
+
+	this(string name, RepositoryType type)
+	{
+		this.name = name;
+		this.type = type;
+	}
+
+}
+
+enum Permission
+{
+	/**
+	 * Možnost zakládat repozitář.
+	 */
+	DENY = 0,
+	INIT = 1,
+	READ,
+	WRITE,
+	REMOVE
+}
+
+
+/**
+ *	Oprvánění.
+ */
+class Access
+{
+	Permission permission;
+	Group[] groups;
+	User[] users;
+}
+
+
+
+/**
+ *	Přiřazení oprávnění, repozitářů, skupin uživatelů a uživatelů.
+ */
+class Acl
+{
+	/**
+	 * Ke kterým repozitářům se to vztahuje.
+	 */
+	Repository[] repositories;
+
+	/**
+	 * Seskupené oprávnění pro uživatele.
+	 */
+	Access[] access;
+}

@@ -21,8 +21,12 @@ import stasi.routing;
 import stasi.model;
 import stasi.commands;
 import stasi.responses;
+import stasi.authentification;
 
+import std.stdio;
 import std.array;
+import std.regex;
+import std.string;
 
 
 /**
@@ -133,22 +137,107 @@ class Command : AbstractCommand
 	 */
 	IResponse fetch(Request request, IResponse response)
 	{
-		//response = cast(ExecResponse) response;
+		//	Ověření přístupů.
+		this.assertAccess(request);
+
+		//	Ověření konzistence repozitáře. To znamená, zda
+		//	- je bare
+		//	- má nastavené defaultní hooky
+		//	- ...
+//		this.model.application.doNormalizeRepository(this.prepareRepository(request.getCommand()), "git");
+
+		//	Výstup
 		ExecResponse response2 = cast(ExecResponse) response;
-		//acl = this.getModel().getApplication().getAcl();
-		//acl.setUser(new Model\User(request.getUser()));
-		//this.getLogger().trace('request', request);
-		//this.getLogger().trace('command', request.getCommand());
-		//if (acl.isAllowed(acl::PERM_SIGNIN)) {
-			response2.setCommand(request.getCommand());
-			return response2;
-		//}
-		//throw new AccessDeniedException("Access Denied for [{request.getUser()}]. User cannot sign-in.", 5);
+		response2.setCommand(
+			this.maskedRepository(
+				request.getCommand()));
+		return response2;
+	}
+
+
+	/**
+	 * @param int $mask
+	 */
+	private void assertAccess(Request request)
+	{
+		string cmd = this.maskedRepository(request.getCommand());
+		Repository repo = this.makeRepository(cmd);
+		Permission perm = this.makePermission(cmd);
+		
+		if (! this.model.application.isAllowed(new User(request.getUser()), repo, perm)) {
+			final switch (perm) {
+				case Permission.INIT:
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot creating git repository: [%s].", request.getUser(), repo.name));
+				case Permission.READ:
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot read from git repository.: [%s].", request.getUser(), repo.name));
+				case Permission.WRITE:
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot write to git repository: [%s].", request.getUser(), repo.name));
+				case Permission.REMOVE:
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot remove in git repository: [%s].", request.getUser(), repo.name));
+				case Permission.DENY:
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot access to git repository: [%s].", request.getUser(), repo.name));
+			}
+		}
 	}
 
 
 
+	/**
+	 * Rozhodne, co je to za oprávnění.
+	 */
+	private Permission makePermission(string cmd)
+	{
+		if (! cmd) {
+			return Permission.DENY;
+		}
+		auto a = split(cmd);
+		switch (a[0]) {
+			case "git-upload-pack":
+			case "git-receive-pack":
+				return Permission.READ;
+			case "git-upload-archive":
+				return Permission.WRITE;
+			default:
+				return Permission.DENY;
+		}
+	}
+
+
+
+
+	/**
+	 * Z requestu vytvořit instanci repozitáře.
+	 */
+	private Repository makeRepository(string cmd)
+	{
+		return new Repository(
+			this.prepareRepository(cmd), RepositoryType.GIT);
+	}
+
+
+
+	/**
+	 * Z commandu rozpoznat jméno repozitáře.
+	 */
+	private string prepareRepository(string cmd)
+	{
+		auto m = match(cmd, regex(`([\w-]+\s+')([^']+)('.*)`));
+		return m.captures[2];
+	}
+
+
+
+	/**
+	 * Nahradit jméno repozitáře v commandu.
+	 */
+	private string maskedRepository(string cmd)
+	{
+		string prefix = "abc/";
+		return replace(cmd, regex(`([\w-]+\s+')([^']+)('.*)`), "$1" ~ prefix ~ "$2$3");
+	}
+
 }
+
 
 
 

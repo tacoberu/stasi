@@ -86,6 +86,7 @@
 				>
 			<task type="common.exec">dmd -ofstasi-shell.test \
 				source/taco/logging/logger.d \
+				source/stasi/authentification.d \
 				source/stasi/shell/main.d \
 				source/stasi/shell/config.d \
 				source/stasi/shell/routing.d \
@@ -107,6 +108,7 @@
 			<task type="common.echo">Spouštíme compile</task>
 			<task type="common.exec">dmd -ofstasi-shell \
 				source/taco/logging/logger.d \
+				source/stasi/authentification.d \
 				source/stasi/shell/main.d \
 				source/stasi/shell/config.d \
 				source/stasi/shell/routing.d \

@@ -42,11 +42,12 @@ int main(string[] args)
 	//	Inicializace
 	try {
 		config = new Config(args);
+		//config.addParser(new ConfigXmlReader());
 		logger = new Logger();
 		//logger.addListener(new FileWriter(config.getLogsPath()), new CommonFilter());
 	}
 	catch (Exception e) {
-		stderr.write("[fatal] (Staci): cannot initialize - %s", e.msg);
+		stderr.writefln("[fatal] (Staci): cannot initialize - %s", e.msg);
 		return 1;
 	}
 
@@ -62,7 +63,7 @@ int main(string[] args)
 				.fetch();
 	}
 	catch (Exception e) {
-		stderr.write("[fatal] (Staci): %s", e.msg);
+		stderr.writefln("[fatal] (Staci): %s", e.msg);
 		//logger.trace('failed', e.msg);
 		return 2;
 	}
