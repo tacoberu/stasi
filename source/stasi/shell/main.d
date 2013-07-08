@@ -24,6 +24,8 @@ import stasi.dispatcher;
 import stasi.model;
 import stasi.responses;
 
+import git = stasi.adapters.git;
+import mercurial = stasi.adapters.mercurial;
 
 
 /**
@@ -53,6 +55,8 @@ int main(string[] args)
 		Request request = (new Router())
 				.createRequest(args);
 		(new Dispatcher(config, new ModelBuilder(config)))
+				.addRoute(new git.Router())
+				.addRoute(new mercurial.Router())
 				.setLogger(logger)
 				.dispatch(request)
 				.fetch();

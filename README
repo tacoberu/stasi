@@ -7,3 +7,7 @@
 
 Centrální soubor, uchovávající konfiguraci.
 Tento soubor je managován. Přičemž tato správa může být přes libovolný způsob. Pro začátek ale dáme jen git.
+
+
+Otestování volání přes konzoli:
+env SSH_ORIGINAL_COMMAND="git-upload-pack 'projects/stasi.git'" build/stasi-shell

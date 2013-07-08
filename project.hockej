@@ -93,8 +93,11 @@
 				source/stasi/shell/dispatcher.d \
 				source/stasi/shell/responses.d \
 				source/stasi/shell/commands.d \
+				source/stasi/adapters/git.d \
+				source/stasi/adapters/mercurial.d \
 				-unittest \
 				</task>
+			<task type="common.exec">./stasi-shell.test</task>
 		</goal>
 
 
@@ -111,6 +114,8 @@
 				source/stasi/shell/dispatcher.d \
 				source/stasi/shell/responses.d \
 				source/stasi/shell/commands.d \
+				source/stasi/adapters/git.d \
+				source/stasi/adapters/mercurial.d \
 				</task>
 		</goal>
 

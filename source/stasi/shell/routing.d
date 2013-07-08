@@ -18,8 +18,31 @@
 module stasi.routing;
 
 
+import stasi.model;
+import stasi.commands;
+import stasi.responses;
+
 import std.stdio;
 import std.process;
+
+
+/**
+ *	Rozlišování modulů.
+ */
+interface IRoute
+{
+
+	/**
+	 * Rozhoduje, zda umíme zpracovat tento příkaz.
+	 */
+	bool match(Request request);
+
+	/**
+	 * Jaký příkaz bude zpracvovávat tento request?
+	 */
+	ICommand getAction(ModelBuilder model);
+
+}
 
 
 
@@ -28,8 +51,6 @@ import std.process;
  */
 class Router
 {
-
-
 
 	/**
 	 * Vytvoření instance requestu.
@@ -41,8 +62,6 @@ class Router
 		if (args.length > 1) {
 			request.setUser(args[1]);
 		}
-		//writefln(environment.get("SSH_ORIGINAL_COMMAND"));
-		//writefln(environment.get("HOME"));
 		request.setCommand(environment.get("SSH_ORIGINAL_COMMAND"));
 
 		return request;
@@ -75,8 +94,9 @@ class Request
 	 * /
 	private $access;
 
+
 	/**
-	 *
+	 * Jméno uživatele.
 	 */
 	Request setUser(string value)
 	{
@@ -85,6 +105,9 @@ class Request
 	}
 
 
+	/**
+	 * Jméno uživatele.
+	 */
 	string getUser()
 	{
 		return this.user;

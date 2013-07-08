@@ -21,7 +21,7 @@ import std.process;
 
 
 /**
- * Požadavek.
+ * Nastavení programu.
  */
 class Config
 {

@@ -22,7 +22,7 @@ import std.process;
 
 
 /**
- *
+ * Odpověď.
  */
 interface IResponse
 {

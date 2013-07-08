@@ -53,6 +53,12 @@ class Dispatcher
 
 
 	/**
+	 *
+	 */
+	private IRoute[] routers;
+
+
+	/**
 	 * @param model, config
 	 */
 	this(Config config, ModelBuilder model)
@@ -70,6 +76,18 @@ class Dispatcher
 	Dispatcher setLogger(ILogger logger)
 	{
 		this.logger = logger;
+		return this;
+	}
+
+
+
+	/**
+	 * @param logovadlo.
+	 * @return Dispatcher
+	 */
+	Dispatcher addRoute(IRoute route)
+	{
+		this.routers ~= route;
 		return this;
 	}
 
@@ -109,18 +127,18 @@ class Dispatcher
 		ICommand action;
 		//this.getLogger().trace('globals', GLOBALS);
 
-		//	Rozřazuje, zda se jedná o příkazy pro git, nebo pro mercurial, nebo nějaké předdefinované, a nebo přihlášení na server.
-		//parser = new Parser();
-		//parser.add(new ParserGit());
-		//parser.add(new ParserMercurial());
-		//if (adapter = parser.parse(request)) {
-			//actionClassName = adapter.getActionClassName();
-			//action = new actionClassName(this.model);
-			//request.setAccess(adapter.getAccess());
-		//}
-		//else {
+		//	Rozřazuje, zda se jedná o příkazy pro git, nebo pro mercurial,
+		//	nebo nějaké předdefinované, a nebo přihlášení na server.
+		foreach (router; this.routers) {
+			if (router.match(request)) {
+				action = router.getAction(this.model);
+				break;
+			}
+		}
+
+		if (! action) {
 			action = new OriginalCommand(this.model);
-		//}
+		}
 
 		action.setLogger(this.getLogger());
 
@@ -133,7 +151,7 @@ class Dispatcher
 
 	/**
 	 * @param ActionInterface action
-	 * @return Response
+	 * @return IResponse
 	 */
 	private IResponse fireAction(Request request, ICommand action)
 	{

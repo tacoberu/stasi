@@ -231,7 +231,6 @@ class Logger : ILogger
 	ILogger log(string message, string type = "*", Level level = Level.LOG)
 	{
 		foreach(pair; this.listener) {
-			io.writefln(" writer: %s", pair);
 			if (pair.filter.filter(level, type)) {
 				pair.writer.write(message, level, type);
 			}
