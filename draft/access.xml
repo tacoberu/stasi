@@ -1,6 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<s:staci xmlns:s="urn:nermal/staci"
-		xmlns:c="urn:nermal/contact">
+<?xml version="1.0"?>
+<s:stasi xmlns:s="urn:nermal/stasi"
+			xmlns:c="urn:nermal/contact">
+
+
 
 	<!--
 		Nastavení serveru.
@@ -23,7 +25,18 @@
 			<s:group ref="admins" />
 		</s:repo>
 
-	</s:globals>		
+
+		<!--
+			Kdo smí vytvářet repozitáře.
+			-->
+		<s:init-repo>
+			<s:user ref="mira" />
+			<s:user ref="taco" />
+			<s:group ref="admins" />
+		</s:init-repo>
+
+	</s:globals>
+
 
 
 	<!--
@@ -41,30 +54,35 @@
 	</s:group>
 
 
+
 	<!--
-		Definice konkrétních uživatelů. Definujeme email a ssh. Klíčů může být 
+		Definice konkrétních uživatelů. Definujeme email a ssh. Klíčů může být
 		vícero, protože pod stejným jménem se může přihlašovat z více míst.
 		-->
 	<s:user name="taco">
 		<c:firstname>Martin</c:firstname>
 		<c:lastname>Takáč</c:lastname>
-		<c:email>mt@darkmay.cz</c:email>
-		<s:ssh type="dsa">ssh-dss AAAAB3NzaC1kc3MAAACBAIXclzahWltq96N5cz3Rftt2ZnsRic9P+LORiZUdr3ed+0EVjgIygr8PRfFjifGi37JPwzt/bLAsXk+Yo5rXFdlQyxFJMJHR7tjgYTyP6EtTuIqo2qgGYyz8f+Vun/AsS2ewbtJfXXDRQ23Wwkvyff6D3E+gK1otjZ2a6o4eKqlpAAAAFQD1r+q3a8h2dCe66YzLE9Dc87/KfwAAAIBHGll0FDBYj4hCYkchhrhBMQ7BoSiCPdEKG2VK9EW4JujOdgGo8PbF8z6wwxU5/MBxlpvlqdYRgkHtY/DMlQDTgdIDQxbI5e0ikIHBwhhqzvtYwhcapLjBIR1t3lVlKOCMgaQRTIOp2ykFyHQNT9cNhtXqsWqzMncHWTMsgbkarQAAAIBu2Nrjs7W/CpT8doR8wzQ7zISdSkwRAH+LqsaGTM2XtYJTymLVFEytiNPE55h+Rexo+OFI792KTuFTkUeKoACIopjgTZtoHqtEJZ5IxVsa2OqAsHbP6Svww+M76LbAvFMquYxyG954XI/D0jtQ66tl5l6yXMPCoEtM6WGJWo5vxA== taco@taco.darkmay.cz</staci:ssh>
-		<s:ssh type="dsa">ssh-dss AAAAB3NzaA1kc3MAAACBAIXclzahWltq96N5cz3Rftt2ZnsRic9P+LORiZUdr3ed+0EVjgIygr8PRfFjifGi37JPwzt/bLAsXk+Yo5rXFdlQyxFJMJHR7tjgYTyP6EtTuIqo2qgGYyz8f+Vun/AsS2ewbtJfXXDRQ23Wwkvyff6D3E+gK1otjZ2a6o4eKqlpAAAAFQD1r+q3a8h2dCe66YzLE9Dc87/KfwAAAIBHGll0FDBYj4hCYkchhrhBMQ7BoSiCPdEKG2VK9EW4JujOdgGo8PbF8z6wwxU5/MBxlpvlqdYRgkHtY/DMlQDTgdIDQxbI5e0ikIHBwhhqzvtYwhcapLjBIR1t3lVlKOCMgaQRTIOp2ykFyHQNT9cNhtXqsWqzMncHWTMsgbkarQAAAIBu2Nrjs7W/CpT8doR8wzQ7zISdSkwRAH+LqsaGTM2XtYJTymLVFEytiNPE55h+Rexo+OFI792KTuFTkUeKoACIopjgTZtoHqtEJZ5IxVsa2OqAsHbP6Svww+M76LbAvFMquYxyG954XI/D0jtQ66tl5l6yXMPCoEtM6WGJWo5vxA== taco@home.localhost</staci:ssh>
+		<c:email>mt@taco-beru.name</c:email>
+		<s:ssh type="dsa">ssh-dss AAAAB3NzaC1kc3MAAACBA...l6yXMPCoEtM6WGJWo5vxA== taco@taco.example.cz</s:ssh>
+		<s:ssh type="dsa">ssh-dss AAAAB3NzaA1kc3MAAACBAIX...66tl5l6yXMPCoEtM6WGJWo5vxA== taco@home.localhost</s:ssh>
 	</s:user>
 
 	<s:user name="mira">
 		<c:firstname>Miroslav</c:firstname>
-		<c:lastname>Fidranský</c:lastname>
-		<c:email>mf@darkmay.cz</c:email>
-		<s:ssh type="dsa">ssh-dss AAAAB3NzaC1kc3MAAACBAIXclzahWltq96N5cz3Rftt2ZnsRic9P+LORiZUdr3ed+0EVjgIygr8PRfFjifGi37JPwzt/bLAsXk+Yo5rXFdlQyxFJMJHR7tjgYTyP6EtTuIqo2qgGYyz8f+Vun/AsS2ewbtJfXXDRQ23Wwkvyff6D3E+gK1otjZ2a6o4eKqlpAAAAFQD1r+q3a8h2dCe66YzLE9Dc87/KfwAAAIBHGll0FDBYj4hCYkchhrhBMQ7BoSiCPdEKG2VK9EW4JujOdgGo8PbF8z6wwxU5/MBxlpvlqdYRgkHtY/DMlQDTgdIDQxbI5e0ikIHBwhhqzvtYwhcapLjBIR1t3lVlKOCMgaQRTIOp2ykFyHQNT9cNhtXqsWqzMncHWTMsgbkarQAAAIBu2Nrjs7W/CpT8doR8wzQ7zISdSkwRAH+LqsaGTM2XtYJTymLVFEytiNPE55h+Rexo+OFI792KTuFTkUeKoACIopjgTZtoHqtEJZ5IxVsa2OqAsHbP6Svww+M76LbAvFMquYxyG954XI/D0jtQ66tl5l6yXMPCoEtM6WGJWo5vxA== taco@taco.darkmay.cz</staci:ssh>
+		<c:lastname>Falco</c:lastname>
+		<c:email>mf@taco-beru.name</c:email>
+		<s:ssh type="dsa">ssh-dss AAAAB3NzaC1kc3MAAACBAIXclzahWltq96N5cz3Rf...6yXMPCoEtM6WGJWo5vxA== taco@taco.example.cz</s:ssh>
 	</s:user>
 
 	<s:user name="fean">
 		<c:firstname>Andreaw</c:firstname>
 		<c:lastname>Fean</c:lastname>
-		<c:email>mt@darkmay.cz</c:email>
-		<s:ssh type="dsa">ssh-dss AAAAB3NzaC1kc3MAAACBAIXclzahWltq96N5cz3Rftt2ZnsRic9P+LORiZUdr3ed+0EVjgIygr8PRfFjifGi37JPwzt/bLAsXk+Yo5rXFdlQyxFJMJHR7tjgYTyP6EtTuIqo2qgGYyz8f+Vun/AsS2ewbtJfXXDRQ23Wwkvyff6D3E+gK1otjZ2a6o4eKqlpAAAAFQD1r+q3a8h2dCe66YzLE9Dc87/KfwAAAIBHGll0FDBYj4hCYkchhrhBMQ7BoSiCPdEKG2VK9EW4JujOdgGo8PbF8z6wwxU5/MBxlpvlqdYRgkHtY/DMlQDTgdIDQxbI5e0ikIHBwhhqzvtYwhcapLjBIR1t3lVlKOCMgaQRTIOp2ykFyHQNT9cNhtXqsWqzMncHWTMsgbkarQAAAIBu2Nrjs7W/CpT8doR8wzQ7zISdSkwRAH+LqsaGTM2XtYJTymLVFEytiNPE55h+Rexo+OFI792KTuFTkUeKoACIopjgTZtoHqtEJZ5IxVsa2OqAsHbP6Svww+M76LbAvFMquYxyG954XI/D0jtQ66tl5l6yXMPCoEtM6WGJWo5vxA== taco@taco.darkmay.cz</staci:ssh>
+		<c:email>mt@taco-beru.name</c:email>
+		<s:ssh type="dsa">ssh-dss AAAAB3NzaC1kc3MAAACBAIXcl...oEtM6WGJWo5vxA== taco@taco.example.cz</s:ssh>
+	</s:user>
+
+	<s:user name="michal">
+		<c:email>michal@example.org</c:email>
 	</s:user>
 
 
@@ -72,17 +90,17 @@
 	<!--
 		Definice repositářů, jejiích umístění, jejich speciální konfigurace.
 		-->
-	<s:repo name="staci-admin" type="git">
+	<s:repository name="stasi-admin" type="git">
 		<s:repo-path>repository/stasi-admin</s:repo-path>
 		<s:working-path>.config/stasi</s:working-path>
-	</s:repo>
-	<s:repo name="staci.git" type="git">
+	</s:repository>
+	<s:repository name="stasi.git" type="git">
 		<s:working-path>Development/lab/working</s:working-path>
-	</s:repo>
-	<s:repo name="testing.git" type="git" />
-	<s:repo name="projekt51" type="git" />
-	<s:repo name="zizkov.hg" type="mercurial" />
-	<s:repo name="koralky.hg" type="mercurial" />
+	</s:repository>
+	<s:repository name="testing.git" type="git" />
+	<s:repository name="projekt51" type="git" />
+	<s:repository name="zizkov.hg" type="mercurial" />
+	<s:repository name="koralky.hg" type="mercurial" />
 
 
 	<!--
@@ -92,10 +110,10 @@
 		<!--
 			Repozitář, který spravuje přístupy.
 			-->
-		<s:repository ref="staci-admin" />
+		<s:repository ref="stasi-admin" />
 		<s:access permission="read,write,remove">
 			<s:group ref="admins" />
-		</s:access>	
+		</s:access>
 	</s:acl>
 
 
@@ -107,7 +125,7 @@
 		<s:repository ref="testing.git" />
 		<s:access permission="init,read,write,remove">
 			<s:group ref="all" />
-		</s:access>	
+		</s:access>
 	</s:acl>
 
 
@@ -118,18 +136,19 @@
 		R   = @testeri
 		-->
 	<s:acl>
-		<s:repository ref="projekt51.git" />
+		<s:repository ref="projekt51" />
 		<s:repository ref="zizkov.hg" />
 		<s:access permission="init,read,write,remove">
 			<s:user ref="michal" />
 			<s:user ref="taco" />
-		</s:access>	
+		</s:access>
 		<s:access permission="read,write">
 			<s:group ref="vyvojari" />
-		</s:access>	
+		</s:access>
 		<s:access permission="read">
 			<s:group ref="testeri" />
-		</s:access>	
+			<s:user ref="fean" />
+		</s:access>
 	</s:acl>
 
 
@@ -139,19 +158,28 @@
 		-->
 	<s:acl>
 		<s:repository ref="koralky.hg" />
-		<s:access permission="init,read,write,remove">
+		<s:access permission="read">
 			<s:user ref="taco" />
-		</s:access>	
+		</s:access>
+		<s:access permission="read,write">
+			<s:user ref="vojta" />
+		</s:access>
 	</s:acl>
-    
+
 
 	<s:acl>
-		<s:repository ref="staci.git" />
-		<s:access permission="init,read,write,remove">
+		<s:repository ref="stasi.git" />
+		<s:access permission="read,write">
 			<s:user ref="taco" />
 			<s:user ref="vojta" />
-		</s:access>	
+			<s:user ref="fean" />
+		</s:access>
 	</s:acl>
 
 
-</s:staci>
+	<s:user name="vojta">
+		<c:email>vojta@example.org</c:email>
+	</s:user>
+
+
+</s:stasi>

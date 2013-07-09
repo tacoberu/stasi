@@ -20,8 +20,23 @@ import stasi.model;
 
 import std.process;
 import std.xml;
-import std.conv;
+//import std.conv;
 import std.stdio;
+import std.array;
+import std.string;
+
+
+
+/**
+ * Neplatný formát configuračního souboru.
+ */
+class InvalidConfigException : Exception
+{
+	this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+	{
+		super(msg, file, line, next);
+	}
+}
 
 
 
@@ -39,9 +54,16 @@ class Config
 
 
 	/**
-	 * Seznam uživatelů.
+	 * Seznam uživatelů. Uživatel je jedinečnej podle svého jména.
 	 */
-	public User[] users;
+	public User[string] users;
+
+
+
+	/**
+	 * Seznam repositářů. Repozitář je jedinečnej podle svého jména.
+	 */
+	public Repository[string] repositories;
 
 
 
@@ -114,7 +136,7 @@ interface IConfigReader
 	 *	Seznam uživatelů.
 	 *	@return array
 	 */
-	// function getUserList();
+	Config fill(Config config);
 
 
 
@@ -124,122 +146,13 @@ interface IConfigReader
 /**
  * Čistě čtení xml souboru s uloženou konfigurací. Nijak nezohlednuje nastavení
  * předané skrze příkazovou řádku, nebo tak něco.
- * /
+ */
 class ConfigXmlReader : IConfigReader
 {
 
-	/**
-	 *	Xml instance.
-	 * /
-	private source;
+	private string content;
 
 
-	/**
-	 *	Kde soubor s definicí konfigurace.
-	 * /
-	private location;
-
-
-	/**
-	 *	Instance readeru obaluje soubor.
-	 * /
-	public function __construct(location)
-	{
-		if (!file_exists(location)) {
-			throw new \InvalidArgumentException('File [' . location . '] not found.');
-		}
-		this.location = location;
-	}
-
-
-
-	/**
-	 *	Verze schematu xmlka.
-	 *	@return string
-	 * /
-	public function getUserList()
-	{
-		source = this.getSource();
-		response = array();
-		foreach (source.xpath('staci:user') as node) {
-			node.registerXPathNamespace('staci', 'urn:nermal/staci');
-			node.registerXPathNamespace('contact', 'urn:nermal/contact');
-
-			entry = (object) array (
-					'ident' => (string)node['name'],
-					'firstname' => self::xmlContent(node, 'contact:firstname'),
-					'lastname' => self::xmlContent(node, 'contact:lastname'),
-					'email' => self::xmlContent(node, 'contact:email'),
-					'permission' => array(),
-					);
-
-			foreach (node.xpath('staci:access/staci:permission') as perm) {
-				entry.permission[] = (string)perm;
-			}
-			response[] = entry;
-		}
-
-		return response;
-	}
-
-
-
-	/**
-	 * @return ...
-	 * /
-	public function getRepoPath()
-	{
-		source = this.getSource();
-		path = source.xpath('staci:setting/staci:repo-path');
-		if (isset(path[0])) {
-			return (string)path[0];
-		}
-		throw new \RuntimeException('repo-path not setting');
-	}
-
-
-	/**
-	 *	Lazy loading configurace.
-	 * /
-	private function getSource()
-	{
-		if (empty(this.source)) {
-			source = \simplexml_load_file(this.location);
-			source.registerXPathNamespace('staci', 'urn:nermal/staci');
-			source.registerXPathNamespace('contact', 'urn:nermal/contact');
-			this.source = source;
-		}
-
-		return this.source;
-	}
-
-
-
-	/**
-	 * @param SimpleXmlElement xml uzel, ve kterém vyhledáváme.
-	 * @param stirng xpath Cesta.
-	 *
-	 * @return string
-	 * /
-	private static function xmlContent(node, xpath)
-	{
-		el = node.xpath(xpath);
-		if (isset(el[0])) {
-			return (string)el[0];
-		}
-	}
-
-
-}
-*/
-
-
-
-/**
- * Vytvoření projektu ze xml souboru.
- */
-class XmlParser
-{
 	class _Group
 	{
 		string name;
@@ -249,128 +162,172 @@ class XmlParser
 			this.name = name;
 		}
 	}
-	
+
 	/**
 	 * Skupiny si zpracováváme interně.
 	 */
 	private _Group[string] groups;
-	
-	
-	
+
+
+	this(string s)
+	{
+		this.content = s;
+	}
+
+	/**
+	 * Překlad názvu na enum.
+	 */
+	private RepositoryType parseRepositoryType(string s)
+	{
+		switch(s) {
+			case "git":
+				return RepositoryType.GIT;
+			case "hg":
+			case "mercurial":
+				return RepositoryType.MERCURIAL;
+			default:
+				return RepositoryType.UNKNOW;
+		}
+	}
+
+
 	/**
 	 * Zpracuje retězec na xml a výsledkem je instance schematu Projektu.
 	 */
-	Config fill(Config config, string s)
+	Config fill(Config config)
 	{
-		writefln("parsing...");
-		check(s);
+		string nsstaci = "s:";
+		string nscontact = "c:";
 
-//		ProjectDefine response = new ProjectDefine();
+		check(this.content);
 
-		auto xml = new DocumentParser(s);
-writeln(xml.tag.type);
-writeln(xml.tag.name);
-writeln(xml.tag.attr);
-writeln("------------------------");
+		auto xml = new DocumentParser(this.content);
 
-		xml.onStartTag["s:group"] = (ElementParser xml)
+		//	Zpracování NS.
+		foreach (k, ns; xml.tag.attr) {
+			switch (ns) {
+				case "urn:nermal/stasi":
+					nsstaci = k[6 .. $] ~ ":";
+					break;
+				case "urn:nermal/contact":
+					nscontact = k[6 .. $] ~ ":";
+					break;
+				default:
+					break;
+			}
+		}
+
+		//	Nejdříve skupiny a uživatele a repozitáře
+		xml.onStartTag[nsstaci ~ "group"] = (ElementParser xml)
 		{
 			string groupname = xml.tag.attr["name"];
-			
-			writeln("s:group: ", groupname);
 			if (groupname in this.groups) {
 				writefln("cau group už existuje ------");
-//				this.groups[groupname].users ~= 
 			}
 			else {
 				this.groups[groupname] = new _Group(groupname);
 			}
-/*
-//			xml.onStartTag["s:user"] = (ElementParser xml)
-			xml.onEndTag["task"] = (in Element e) {
-			{
-				writefln("s:user: [%s]", e.tag.attr["ref"]);
-				this.groups[groupname].users ~= e.tag.attr["ref"];
-			};
-//			xml.parse();
 
-//*/
-			//response.identity = new IdentityDefine();
-			xml.onEndTag["s:user"] = (in Element e) {
-				writefln("s:user: [%s]", xml.tag.attr["ref"]);
+			xml.onStartTag[nsstaci ~ "user"] = (ElementParser xml)
+			{
 				this.groups[groupname].users ~= xml.tag.attr["ref"];
+				xml.parse();
 			};
-/*
-			xml.onEndTag["vendor"] = (in Element e) {
-				response.identity.vendor = e.text();
-			};
-			xml.onEndTag["author"] = (in Element e) {
-				response.identity.author = e.text();
-			};
-			xml.onEndTag["description"] = (in Element e) {
-				response.identity.description = e.text();
-			};
-			xml.onEndTag["version"] = (in Element e) {
-				string[] v = split(e.text(), ".");
-				if (v.length == 3) {
-					response.identity._version = new VersionDefine(to!int(v[0]), to!int(v[1]), to!int(v[2]));
-				}
-			};*/
 
 			xml.parse();
 		};
 
-/*
-		xml.onStartTag["s:user"] = (ElementParser xml)
+		xml.onStartTag[nsstaci ~ "user"] = (ElementParser xml)
 		{
-			User u = new User(xml.tag.attr["name"]);
-			
+			if ("name" in xml.tag.attr) {
+				config.users[xml.tag.attr["name"]] = new User(xml.tag.attr["name"]);
+			}
 
-			config.users ~= u;
 			xml.parse();
 		};
 
-/*
-		xml.onStartTag["goals"] = (ElementParser xml)
+		xml.onStartTag[nsstaci ~ "repository"] = (ElementParser xml)
 		{
-			xml.onStartTag["goal"] = (ElementParser xml)
+			if (("name" in xml.tag.attr) && ("type" in xml.tag.attr)) {
+				config.repositories[xml.tag.attr["name"]] = new Repository(xml.tag.attr["name"], this.parseRepositoryType(xml.tag.attr["type"]));
+			}
+
+			xml.parse();
+		};
+
+		xml.onStartTag[nsstaci ~ "acl"] = (ElementParser xml)
+		{
+			xml.parse();
+		};
+
+		xml.parse();
+
+
+		//	Nakonec vztahy mezi repozitáři a uživateli.
+		xml = new DocumentParser(this.content);
+
+		xml.onStartTag[null] = (ElementParser xml)
+		{
+			xml.parse();
+		};
+
+		xml.onStartTag[nsstaci ~ "acl"] = (ElementParser xml)
+		{
+			// Seznam repozitářů v tomto acl-ku.
+			string[] repos;
+
+			xml.onStartTag[nsstaci ~ "repository"] = (ElementParser xml)
 			{
-				GoalDefine g = new GoalDefine("");
-				g.name = xml.tag.attr["name"];
-				g.description = xml.tag.attr["description"];
-				if ("depends" in xml.tag.attr) {
-					string[] depends = split(xml.tag.attr["depends"], ",");
-					foreach (string depend; depends) {
-						g.addDependency(strip(depend));
+				repos ~= xml.tag.attr["ref"];
+				xml.parse();
+			};
+
+			xml.onStartTag[nsstaci ~ "access"] = (ElementParser xml)
+			{
+				Permission perm = Permission.DENY;
+				foreach (s; split(xml.tag.attr["permission"], ",")) {
+					switch(s) {
+						case "init":
+							perm |= Permission.INIT;
+							break;
+						case "read":
+							perm |= Permission.READ;
+							break;
+						case "write":
+							perm |= Permission.WRITE;
+							break;
+						case "remove":
+							perm |= Permission.REMOVE;
+							break;
+						default:
+							break;
 					}
 				}
 
-				xml.onStartTag["task"] = (ElementParser xml)
+				xml.onStartTag[nsstaci ~ "user"] = (ElementParser xml)
 				{
-					TaskDefine t = new TaskDefine(xml.tag.attr["type"], "");
-					xml.onEndTag["task"] = (in Element e) {
-						if (e.elements.length > 0) {
-							throw new Exception("Zatim neimplementováno parsování složitějšího obsahu.");
+					string name = xml.tag.attr["ref"];
+					foreach (repo; repos) {
+						if (! (name in config.users)) {
+							throw new InvalidConfigException(format("User [%s] is not declared.", name));
 						}
-						else {
-							GenericTaskLocalParams local = new GenericTaskLocalParams();
-							local.content = e.text();
-							t.content = local;
+						if (! (repo in config.repositories)) {
+							throw new InvalidConfigException(format("Repository [%s] is not declared.", repo));
 						}
-					};
+						config.users[name]
+							.repositories[repo] = new AccessRepository(
+								repo,
+								config.repositories[repo]
+									.type, perm);
+					}
 					xml.parse();
-
-					g.tasks ~= t;
 				};
 				xml.parse();
-
-				response.goals[g.name] = g;
 			};
-			xml.parse();
 
+			xml.parse();
 		};
-		* 
-		* */
+
 		xml.parse();
 
 		return config;
@@ -379,9 +336,9 @@ writeln("------------------------");
 }
 unittest {
 		string s = "<?xml version=\"1.0\"?>
-<s:staci xmlns:s=\"urn:nermal/staci\"
+<s:stasi xmlns:s=\"urn:nermal/stasi\"
 			xmlns:c=\"urn:nermal/contact\">
-	
+
 	<!--
 		Skupina uživatelů
 		-->
@@ -399,9 +356,9 @@ unittest {
 
 
 	<!--
-		Definice konkrétních uživatelů. Definujeme email a ssh. Klíčů může být 
+		Definice konkrétních uživatelů. Definujeme email a ssh. Klíčů může být
 		vícero, protože pod stejným jménem se může přihlašovat z více míst.
-		- ->
+		-->
 	<s:user name=\"taco\">
 		<c:firstname>Martin</c:firstname>
 		<c:lastname>Takáč</c:lastname>
@@ -424,21 +381,26 @@ unittest {
 		<s:ssh type=\"dsa\">ssh-dss AAAAB3NzaC1kc3MAAACBAIXcl...oEtM6WGJWo5vxA== taco@taco.example.cz</s:ssh>
 	</s:user>
 
-	-->
+	<s:user name=\"michal\">
+		<c:email>michal@example.org</c:email>
+	</s:user>
+
+
+
 	<!--
 		Definice repositářů, jejiích umístění, jejich speciální konfigurace.
 		-->
-	<s:repo name=\"staci-admin\" type=\"git\">
+	<s:repository name=\"stasi-admin\" type=\"git\">
 		<s:repo-path>repository/stasi-admin</s:repo-path>
 		<s:working-path>.config/stasi</s:working-path>
-	</s:repo>
-	<s:repo name=\"staci.git\" type=\"git\">
+	</s:repository>
+	<s:repository name=\"stasi.git\" type=\"git\">
 		<s:working-path>Development/lab/working</s:working-path>
-	</s:repo>
-	<s:repo name=\"testing.git\" type=\"git\" />
-	<s:repo name=\"projekt51\" type=\"git\" />
-	<s:repo name=\"zizkov.hg\" type=\"mercurial\" />
-	<s:repo name=\"koralky.hg\" type=\"mercurial\" />
+	</s:repository>
+	<s:repository name=\"testing.git\" type=\"git\" />
+	<s:repository name=\"projekt51\" type=\"git\" />
+	<s:repository name=\"zizkov.hg\" type=\"mercurial\" />
+	<s:repository name=\"koralky.hg\" type=\"mercurial\" />
 
 
 	<!--
@@ -448,10 +410,10 @@ unittest {
 		<!--
 			Repozitář, který spravuje přístupy.
 			-->
-		<s:repository ref=\"staci-admin\" />
+		<s:repository ref=\"stasi-admin\" />
 		<s:access permission=\"read,write,remove\">
-			<s:xgroup ref=\"admins\" />
-		</s:access>	
+			<s:group ref=\"admins\" />
+		</s:access>
 	</s:acl>
 
 
@@ -462,8 +424,8 @@ unittest {
 	<s:acl>
 		<s:repository ref=\"testing.git\" />
 		<s:access permission=\"init,read,write,remove\">
-			<s:xgroup ref=\"all\" />
-		</s:access>	
+			<s:group ref=\"all\" />
+		</s:access>
 	</s:acl>
 
 
@@ -474,18 +436,19 @@ unittest {
 		R   = @testeri
 		-->
 	<s:acl>
-		<s:repository ref=\"projekt51.git\" />
+		<s:repository ref=\"projekt51\" />
 		<s:repository ref=\"zizkov.hg\" />
 		<s:access permission=\"init,read,write,remove\">
-			<s:xuser ref=\"michal\" />
-			<s:xuser ref=\"taco\" />
-		</s:access>	
+			<s:user ref=\"michal\" />
+			<s:user ref=\"taco\" />
+		</s:access>
 		<s:access permission=\"read,write\">
-			<s:xgroup ref=\"vyvojari\" />
-		</s:access>	
+			<s:group ref=\"vyvojari\" />
+		</s:access>
 		<s:access permission=\"read\">
-			<s:xgroup ref=\"testeri\" />
-		</s:access>	
+			<s:group ref=\"testeri\" />
+			<s:user ref=\"fean\" />
+		</s:access>
 	</s:acl>
 
 
@@ -495,51 +458,53 @@ unittest {
 		-->
 	<s:acl>
 		<s:repository ref=\"koralky.hg\" />
-		<s:access permission=\"init,read,write,remove\">
+		<s:access permission=\"read\">
 			<s:user ref=\"taco\" />
-		</s:access>	
+		</s:access>
+		<s:access permission=\"read,write\">
+			<s:user ref=\"vojta\" />
+		</s:access>
 	</s:acl>
-    
+
 
 	<s:acl>
-		<s:repository ref=\"staci.git\" />
-		<s:access permission=\"init,read,write,remove\">
+		<s:repository ref=\"stasi.git\" />
+		<s:access permission=\"read,write\">
 			<s:user ref=\"taco\" />
 			<s:user ref=\"vojta\" />
-		</s:access>	
+			<s:user ref=\"fean\" />
+		</s:access>
 	</s:acl>
 
 
-</s:staci>";
+	<s:user name=\"vojta\">
+		<c:email>vojta@example.org</c:email>
+	</s:user>
 
-	XmlParser parser = new XmlParser();
-    Config config = parser.fill(new Config(["main", "build", "install"]), s);
-	
-	//assert(config.users.length == 3, "Celkem naimportovaných uživatelů.");
-	//assert(config.users[0].name == "taco", "Jméno uživatele");
-	//assert(config.users[1].name == "mira", "Jméno uživatele");
-	//assert(config.users[2].name == "fean", "Jméno uživatele");
-	//assert(project.identity.vendor == "taco", "Jméno vendoru.");
-	//assert(project.identity.author == "Martin Takáč", "Autor.");
-	//assert(project.identity._version.major == 0, "Major version");
-	//assert(project.identity._version.minor == 0, "Minor version");
-	//assert(project.identity._version.release == 1, "Release version");
-	//assert(project.identity.description == "Builder sám na sebe.", "Popisek");
 
-	//assert(project.goals.length == 3, "Počet targetů.");
-	//assert(project.goals["update"].name == "update", "První target.");
-	//assert(project.goals["push"].name == "push", "Druhý target.");
-	//assert(project.goals["compile"].name == "compile", "Třetí target.");
+</s:stasi>";
 
-	//assert(project.goals["update"].tasks.length == 2, "Počet tasků.");
-	//assert(project.goals["push"].tasks.length == 1, "Počet tasků.");
-	//assert(project.goals["compile"].tasks.length == 1, "Počet tasků.");
+	ConfigXmlReader parser = new ConfigXmlReader(s);
+    Config config = parser.fill(new Config([]));
 
-//	writeln(project.goals[0].tasks[0].type);
-	//assert(project.goals["update"].tasks[0].type == "vcs.pull", "Task vcs.pull.");
-	//assert(project.goals["update"].tasks[1].type == "vcs.update", "Task vcs.update.");
-	//assert(project.goals["push"].tasks[0].type == "vcs.push", "Task vcs.push.");
-	//assert(project.goals["compile"].tasks[0].type == "compile.compile", "Task compile.compile.");
+	assert(config.users.length == 5, "Celkem naimportovaných uživatelů.");
+	assert(config.users["taco"].name == "taco");
+	assert(config.users["taco"].repositories.length == 4);
+	assert(config.users["taco"].repositories["projekt51"].permission == (Permission.INIT | Permission.READ | Permission.WRITE | Permission.REMOVE));
+	assert(config.users["taco"].repositories["stasi.git"].permission == (Permission.READ | Permission.WRITE));
+	assert(config.users["taco"].repositories["koralky.hg"].permission == (Permission.READ));
+	assert(config.users["mira"].name == "mira");
+	assert(config.users["mira"].repositories.length == 0);
+	assert(config.users["fean"].name == "fean");
+	assert(config.users["fean"].repositories.length == 3);
+	assert(config.users["fean"].repositories["projekt51"].permission == Permission.READ);
+	assert(config.users["fean"].repositories["zizkov.hg"].permission == Permission.READ);
+	assert(config.users["fean"].repositories["stasi.git"].permission == (Permission.READ | Permission.WRITE));
+
+	assert(config.repositories.length == 6);
+	assert(config.repositories["stasi-admin"].name == "stasi-admin");
+	assert(config.repositories["stasi.git"].name == "stasi.git");
+	assert(config.repositories["testing.git"].name == "testing.git");
 
 }
 

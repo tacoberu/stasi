@@ -160,22 +160,24 @@ class Command : AbstractCommand
 	 */
 	private void assertAccess(Request request)
 	{
+		string original = this.prepareRepository(request.getCommand());
 		string cmd = this.maskedRepository(request.getCommand());
-		Repository repo = this.makeRepository(cmd);
+		//Repository repo = this.makeRepository(cmd);
+		Repository repo = new Repository(original, RepositoryType.GIT);
 		Permission perm = this.makePermission(cmd);
-		
+
 		if (! this.model.application.isAllowed(new User(request.getUser()), repo, perm)) {
 			final switch (perm) {
 				case Permission.INIT:
-					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot creating git repository: [%s].", request.getUser(), repo.name));
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot creating git repository: [%s].", request.getUser(), original));
 				case Permission.READ:
-					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot read from git repository.: [%s].", request.getUser(), repo.name));
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot read from git repository: [%s].", request.getUser(), original));
 				case Permission.WRITE:
-					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot write to git repository: [%s].", request.getUser(), repo.name));
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot write to git repository: [%s].", request.getUser(), original));
 				case Permission.REMOVE:
-					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot remove in git repository: [%s].", request.getUser(), repo.name));
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot remove in git repository: [%s].", request.getUser(), original));
 				case Permission.DENY:
-					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot access to git repository: [%s].", request.getUser(), repo.name));
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot access to git repository: [%s].", request.getUser(), original));
 			}
 		}
 	}

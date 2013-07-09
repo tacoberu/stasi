@@ -20,6 +20,7 @@ module stasi.model;
 import stasi.config;
 
 import std.stdio;
+import std.file;
 
 
 /**
@@ -30,7 +31,9 @@ class ModelBuilder
 
 	private Config config;
 
+
 	private Application _application;
+
 
 	/**
 	 * @param model, config
@@ -43,7 +46,7 @@ class ModelBuilder
 
 
 	/**
-	 * @return Application
+	 * Getted or Created Application
 	 */
 	@property Application application() // const
 	{
@@ -56,16 +59,26 @@ class ModelBuilder
 
 
 	/**
-	 * @return Application
+	 * Create new Application
 	 */
 	Application createApplication()
 	{
 		Application app = new Application();
 		app.setHomePath(this.config.getHomePath());
-		//app.setAcl(this.createAcl());
 		//app.setRepositoryPath(this.config.getRepoPath());
-		writefln("fill users");
-		writefln("fill repos");
+
+		string s = cast(string)std.file.read(this.config.getAclFile());
+		IConfigReader reader = new ConfigXmlReader(s);
+		this.config = reader.fill(this.config);
+
+		foreach (u; this.config.users) {
+			app.users ~= u;
+		}
+
+		foreach (r; this.config.repositories) {
+			app.repositories ~= r;
+		}
+
 		return app;
 	}
 
@@ -110,7 +123,6 @@ class Application
 	Repository[] repositories;
 
 
-
 	/**
 	 * Cesta k úložišti repozitářů.
 	 * @return string
@@ -120,7 +132,6 @@ class Application
 		this.homePath = path;
 		return this;
 	}
-
 
 
 	/**
@@ -163,13 +174,43 @@ class Application
 	 */
 	bool isAllowed(User user, Repository repository, Permission perm)
 	{
-		foreach (m; this.users) {
-			if (m.name == user.name) {
-				writefln(">> %s", m.name);
+		//	Najdem uživatele
+		foreach (u; this.users) {
+			if (u.name == user.name) {
+				//writefln("user: %s", u.name);
+				//	Najdem repozitář
+				foreach (r; u.repositories) {
+					if ((r.name == repository.name) && (r.type == repository.type)) {
+						//writefln("  repo: %s", r.name);
+						//	Zkontrolujem oprávnění.
+						if (perm & r.permission) {
+							//writefln("    povoleno");
+							return true;
+						}
+						//writefln("    odmíntuto");
+						return false;
+					}
+				}
 			}
 		}
 		return false;
 	}
+	unittest {
+		Application app = new Application();
+		User user = new User("foo");
+		user.repositories["pokus.git"] = new AccessRepository("pokus.git", RepositoryType.GIT, Permission.READ);
+		user.repositories["druhej.hg"] = new AccessRepository("druhej.hg", RepositoryType.MERCURIAL, Permission.READ | Permission.WRITE | Permission.REMOVE);
+		app.users ~= user;
+		assert(2 == user.repositories.length);
+		assert(true == app.isAllowed(new User("foo"), new Repository("pokus.git", RepositoryType.GIT), Permission.READ));
+		assert(false == app.isAllowed(new User("foo"), new Repository("pokus.git", RepositoryType.GIT), Permission.WRITE));
+		assert(app.isAllowed(new User("foo"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.WRITE));
+		assert(app.isAllowed(new User("foo"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.READ));
+		assert(! app.isAllowed(new User("foo"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.INIT));
+		assert(! app.isAllowed(new User("too"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.WRITE));
+		assert(! app.isAllowed(new User("too"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.READ));
+	}
+
 
 
 	/**
@@ -241,6 +282,8 @@ class User
 	string firstname;
 	string lastname;
 	string email;
+	AccessRepository[string] repositories;
+
 
 	this(string name)
 	{
@@ -268,22 +311,13 @@ unittest {
 
 
 
-/**
- *	Skupina uživatelů.
- */
-class Group
-{
-	string name;
-	User[] users;
-}
-
-
 
 /**
  *	Typ repozitáře.
  */
 enum RepositoryType
 {
+	UNKNOW = 0,
 	GIT = 1,
 	MERCURIAL
 }
@@ -296,8 +330,10 @@ enum RepositoryType
 class Repository
 {
 	RepositoryType type;
-	
+
 	string name;
+
+	string path = "";
 
 	this(string name, RepositoryType type)
 	{
@@ -305,7 +341,32 @@ class Repository
 		this.type = type;
 	}
 
+	@property string full()
+	{
+		return this.path ~ this.name;
+	}
 }
+
+
+/**
+ * Přístup k repozitáři.
+ */
+class AccessRepository
+{
+	RepositoryType type;
+
+	string name;
+
+	Permission permission;
+
+	this(string name, RepositoryType type, Permission perm)
+	{
+		this.name = name;
+		this.type = type;
+		this.permission = perm;
+	}
+}
+
 
 enum Permission
 {
@@ -314,9 +375,9 @@ enum Permission
 	 */
 	DENY = 0,
 	INIT = 1,
-	READ,
-	WRITE,
-	REMOVE
+	READ = 2,
+	WRITE = 4,
+	REMOVE = 8
 }
 
 
@@ -326,7 +387,6 @@ enum Permission
 class Access
 {
 	Permission permission;
-	Group[] groups;
 	User[] users;
 }
 
