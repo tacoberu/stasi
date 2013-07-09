@@ -24,6 +24,7 @@ import stasi.routing;
 import stasi.commands;
 import stasi.responses;
 
+import std.string;
 
 
 
@@ -49,7 +50,7 @@ class Dispatcher
 	/**
 	 * Konfigurace.
 	 */
-	private ILogger logger;
+	private ILogger _logger;
 
 
 	/**
@@ -73,9 +74,9 @@ class Dispatcher
 	 * @param logovadlo.
 	 * @return Dispatcher
 	 */
-	Dispatcher setLogger(ILogger logger)
+	@property Dispatcher logger(ILogger logger)
 	{
-		this.logger = logger;
+		this._logger = logger;
 		return this;
 	}
 
@@ -97,12 +98,12 @@ class Dispatcher
 	 * Získání loggeru, nového, nebo oposledně vytvořeneého.
 	 * @return Logger
 	 */
-	ILogger getLogger()
+	@property ILogger logger()
 	{
-		if (! this.logger) {
-			this.logger = this.createLogger();
+		if (! this._logger) {
+			this._logger = this.createLogger();
 		}
-		return this.logger;
+		return this._logger;
 	}
 
 
@@ -125,13 +126,14 @@ class Dispatcher
 	IResponse dispatch(Request request)
 	{
 		ICommand action;
-		this.getLogger().trace(request.toString(), "request");
+		this.logger.trace(request.toString(), "request");
 
 		//	Rozřazuje, zda se jedná o příkazy pro git, nebo pro mercurial,
 		//	nebo nějaké předdefinované, a nebo přihlášení na server.
-		foreach (router; this.routers) {
-			if (router.match(request)) {
-				action = router.getAction(this.model);
+		foreach (r; this.routers) {
+			if (r.match(request)) {
+				this.logger.trace(format("router: %s", r.className), "route");
+				action = r.getAction(this.model);
 				break;
 			}
 		}
@@ -140,10 +142,11 @@ class Dispatcher
 			action = new OriginalCommand(this.model);
 		}
 
-		action.setLogger(this.getLogger());
+		this.logger.trace(format("action: %s", action.className), "request");
+		action.setLogger(this.logger);
 
 		IResponse response = this.fireAction(request, action);
-		this.getLogger().trace(response.toString(), "response");
+		this.logger.trace(response.toString(), "response");
 
 		return response;
 	}

@@ -58,7 +58,7 @@ int main(string[] args)
 		stderr.writefln("[fatal] (Staci): cannot initialize - %s", e.msg);
 		return 1;
 	}
-
+//*
 	//	Process
 	try {
 		logger.info("== start ==");
@@ -67,7 +67,7 @@ int main(string[] args)
 		int ret = (new Dispatcher(config, new ModelBuilder(config, logger)))
 				.addRoute(new git.Router())
 				.addRoute(new mercurial.Router())
-				.setLogger(logger)
+				.logger(logger)
 				.dispatch(request)
 				.fetch();
 		return ret;
@@ -87,7 +87,7 @@ int main(string[] args)
 				"fail");
 		return 3;
 	}
-
+//*/
 	return 4;
 }
 

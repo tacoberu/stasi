@@ -21,22 +21,25 @@ import stasi.routing;
 import stasi.model;
 import stasi.commands;
 import stasi.responses;
+import stasi.authentification;
 
 import std.stdio;
 import std.string;
 
 
 
+private const CMD_INIT = "hg init";
+private const CMD_SERVER_START = "hg -R";
+private const CMD_SERVER_END = "serve --stdio";
+
+
+
+
 /**
- *
+ * Rozlišení mercurial příkazů.
  */
 class Router : IRoute
 {
-
-	private const CMD_INIT = "hg init";
-	private const CMD_SERVER_START = "hg -R";
-	private const CMD_SERVER_END = "serve --stdio";
-
 
 	bool match(Request request)
 	{
@@ -44,11 +47,11 @@ class Router : IRoute
 		if (! cmd) {
 			return false;
 		}
-		if (0 == indexOf(cmd, this.CMD_INIT)) {
+		if (0 == indexOf(cmd, CMD_INIT)) {
 			return true;
 		}
-		if ((0 == indexOf(cmd, this.CMD_SERVER_START))
-				&& (lastIndexOf(cmd, this.CMD_SERVER_END) + this.CMD_SERVER_END.length) == cmd.length) {
+		if ((0 == indexOf(cmd, CMD_SERVER_START))
+				&& (lastIndexOf(cmd, CMD_SERVER_END) + CMD_SERVER_END.length) == cmd.length) {
 			return true;
 		}
 		return false;
@@ -80,6 +83,11 @@ class Router : IRoute
 	}
 
 
+	@property string className()
+	{
+		return this.classinfo.name;
+	}
+
 }
 
 
@@ -103,6 +111,12 @@ class Command : AbstractCommand
 	}
 
 
+	@property string className()
+	{
+		return this.classinfo.name;
+	}
+
+
 
 	/**
 	 *	Obálka na data.
@@ -115,37 +129,131 @@ class Command : AbstractCommand
 
 
 	/**
-	 * @return Model
+	 *	Vytvoření odpovědi. Předpokládáme jen náhled.
 	 */
-	ModelBuilder getModel()
+	IResponse fetch(Request request, IResponse response)
 	{
-		return this.model;
+		this.logger.log("before assert");
+
+		//	Ověření přístupů.
+		this.assertAccess(request);
+
+		this.logger.log("after assert");
+
+		//	Ověření konzistence repozitáře. To znamená, zda
+		//	- je bare
+		//	- má nastavené defaultní hooky
+		//	- ...
+//		this.model.application.doNormalizeRepository(this.prepareRepository(request.getCommand()), "git");
+
+		//	Výstup
+		ExecResponse response2 = cast(ExecResponse) response;
+		string masked;
+		response2.setCommand(
+			masked = this.maskedRepository(
+				request.getCommand()));
+		this.logger.log(format("masked command [%s] to [%s]", request.getCommand(), masked));
+		return response2;
+	}
+
+
+
+
+	/**
+	 * Ověření oprávnění.
+	 */
+	private void assertAccess(Request request)
+	{
+		string original = this.prepareRepository(request.getCommand());
+		string cmd = this.maskedRepository(request.getCommand());
+		Repository repo = new Repository(original, RepositoryType.MERCURIAL);
+		Permission perm = this.makePermission(cmd);
+
+		if (! this.model.application.hasRepository(original)) {
+			throw new RepositoryNotFoundException(format("Repository: [%s] not defined.", original));
+		}
+
+		if (! this.model.application.isAllowed(new User(request.getUser()), repo, perm)) {
+			//	Rozlišujeme tu jen vytváření, možností přístupu. Read nebo 
+			//	Write musí řešit hooky. Jinak to neumím.
+			switch (perm) {
+				case Permission.INIT:
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot creating mercurial repository: [%s].", request.getUser(), original));
+				default:
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot access to mercurial repository: [%s].", request.getUser(), original));
+			}
+		}
 	}
 
 
 
 	/**
-	 *	Vytvoření odpovědi. Předpokládáme jen náhled.
+	 * Jaká oprávnění vyžadujem?
 	 */
-	IResponse fetch(Request request, IResponse response)
+	private Permission makePermission(string cmd)
 	{
-		//response = cast(ExecResponse) response;
-		ExecResponse response2 = cast(ExecResponse) response;
-		//acl = this.getModel().getApplication().getAcl();
-		//acl.setUser(new Model\User(request.getUser()));
-		//this.getLogger().trace('request', request);
-		//this.getLogger().trace('command', request.getCommand());
-		//if (acl.isAllowed(acl::PERM_SIGNIN)) {
-			response2.setCommand(request.getCommand());
-			return response2;
-		//}
-		//throw new AccessDeniedException("Access Denied for [{request.getUser()}]. User cannot sign-in.", 5);
+		if (! cmd) {
+			return Permission.DENY;
+		}
+
+		if (0 == indexOf(cmd, CMD_INIT)) {
+			return Permission.INIT;
+		}
+		
+		//	Nejnižší je čtení.
+		return Permission.READ;
 	}
 
 
 
+	/**
+	 * Nahradit jméno repozitáře v commandu.
+	 */
+	private string maskedRepository(string cmd)
+	{
+		if (! cmd) {
+			return cmd;
+		}
+
+		string prefix = this.model.application.getDefaultRepositoryPath();
+		string s;
+
+		if (0 == indexOf(cmd, CMD_INIT)) {
+			s = cmd[CMD_INIT.length .. $];
+			s = s.strip();
+			return format("%s %s%s", CMD_INIT, prefix, s);
+		}
+		long i;
+		if ((0 == indexOf(cmd, CMD_SERVER_START))
+				&& ((i = lastIndexOf(cmd, CMD_SERVER_END)) + CMD_SERVER_END.length) == cmd.length) {
+			s = cmd[CMD_SERVER_START.length .. i];
+			s = s.strip();
+			return format("%s %s%s %s", CMD_SERVER_START, prefix, s, CMD_SERVER_END);
+		}
+		return cmd;
+	}
+
+
+
+	/**
+	 * Z commandu rozpoznat jméno repozitáře.
+	 */
+	private string prepareRepository(string cmd)
+	{
+		string s;
+		if (0 == indexOf(cmd, CMD_INIT)) {
+			s = cmd[CMD_INIT.length .. $];
+			return s.strip();
+		}
+		long i;
+		if ((0 == indexOf(cmd, CMD_SERVER_START))
+				&& ((i = lastIndexOf(cmd, CMD_SERVER_END)) + CMD_SERVER_END.length) == cmd.length) {
+			s = cmd[CMD_SERVER_START.length .. i];
+			return s.strip();
+		}
+
+		return null;
+	}
+
+
 }
-
-
-
-

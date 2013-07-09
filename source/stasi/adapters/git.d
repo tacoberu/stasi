@@ -30,7 +30,7 @@ import std.string;
 
 
 /**
- * Možnost zpracovávání git příkazů.
+ * Rozlišení git příkazů.
  */
 class Router : IRoute
 {
@@ -87,9 +87,13 @@ class Router : IRoute
 
 
 
+	@property string className()
+	{
+		return this.classinfo.name;
+	}
+
+
 }
-
-
 
 
 
@@ -112,22 +116,19 @@ class Command : AbstractCommand
 
 
 
+	@property string className()
+	{
+		return this.classinfo.name;
+	}
+
+
+
 	/**
 	 *	Obálka na data.
 	 */
 	IResponse createResponse(Request request)
 	{
 		return new ExecResponse();
-	}
-
-
-
-	/**
-	 * @return Model
-	 */
-	ModelBuilder getModel()
-	{
-		return this.model;
 	}
 
 
@@ -148,15 +149,17 @@ class Command : AbstractCommand
 
 		//	Výstup
 		ExecResponse response2 = cast(ExecResponse) response;
+		string masked;
 		response2.setCommand(
-			this.maskedRepository(
+			masked = this.maskedRepository(
 				request.getCommand()));
+		this.logger.log(format("masked command [%s] to [%s]", request.getCommand(), masked));
 		return response2;
 	}
 
 
 	/**
-	 * @param int $mask
+	 * Ověření oprávnění.
 	 */
 	private void assertAccess(Request request)
 	{
@@ -167,7 +170,7 @@ class Command : AbstractCommand
 		Permission perm = this.makePermission(cmd);
 
 		if (! this.model.application.hasRepository(original)) {
-			throw new RepositoryNotFoundException(format("Repository: [%s] not found.", original));
+			throw new RepositoryNotFoundException(format("Repository: [%s] not defined.", original));
 		}
 
 		if (! this.model.application.isAllowed(new User(request.getUser()), repo, perm)) {
@@ -189,7 +192,7 @@ class Command : AbstractCommand
 
 
 	/**
-	 * Rozhodne, co je to za oprávnění.
+	 * Jaká oprávnění vyžadujem?
 	 */
 	private Permission makePermission(string cmd)
 	{
@@ -207,7 +210,6 @@ class Command : AbstractCommand
 				return Permission.DENY;
 		}
 	}
-
 
 
 

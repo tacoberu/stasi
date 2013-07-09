@@ -430,7 +430,6 @@ unittest {
 		assert("Invalid xml format: [Line 16, column 2: end tag name \"s:userx\" differs from start tag name \"s:user\",Line 14, column 2: Element,Line 14, column 2: Content,Line 2, column 1: Element,Line 1, column 1: Document,].", e.msg);
 	}
 }
-
 unittest {
 		string s = "<?xml version=\"1.0\"?>
 <s:stasi xmlns:s=\"urn:nermal/stasi\"

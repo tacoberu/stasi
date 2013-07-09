@@ -43,6 +43,9 @@ interface IRoute
 	 */
 	ICommand getAction(ModelBuilder model);
 
+
+	@property string className();
+
 }
 
 

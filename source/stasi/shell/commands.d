@@ -50,6 +50,9 @@ interface ICommand
 	 */
 	ICommand setLogger(ILogger logger);
 
+
+	@property string className();
+
 }
 
 
@@ -62,7 +65,7 @@ interface ICommand
 abstract class AbstractCommand : ICommand
 {
 
-	private ILogger logger;
+	protected ILogger logger;
 
 
 	/**
@@ -118,6 +121,13 @@ class OriginalCommand : AbstractCommand
 	this(ModelBuilder model)
 	{
 		this.model = model;
+	}
+
+
+
+	@property string className()
+	{
+		return this.classinfo.name;
 	}
 
 
