@@ -5,7 +5,6 @@
 		- Nastavený worktree v configu podle xml
 - Build
 - Instalační balíček.
-- Přepsání do D
 - ACL rozlišování u uživatelů, oprávnění čtení a zápis u mercurialu.
 - Manage wrapered ~/.ssh/authorized_keys
 - Manage user, repositories, konfigure by admin-repo, like gitolite
@@ -17,3 +16,7 @@
 	stasi setup --user cia
 
 - Přidání uživatele
+
+- Log oddělit do vendors. Mrknout se na haskel.alfarome
+- Pokud má uživatel patřičná práva, může on-demand vytvářet repozitáře. (Zkusí 
+poslat push do repozitáře, který neexistuje.)
