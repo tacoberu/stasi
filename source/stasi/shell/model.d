@@ -17,10 +17,13 @@
 
 module stasi.model;
 
+import taco.logging;
+
 import stasi.config;
 
 import std.stdio;
 import std.file;
+import std.string;
 
 
 /**
@@ -30,6 +33,9 @@ class ModelBuilder
 {
 
 	private Config config;
+	
+	
+	private Logger logger;
 
 
 	private Application _application;
@@ -38,9 +44,10 @@ class ModelBuilder
 	/**
 	 * @param model, config
 	 */
-	this(Config config)
+	this(Config config, Logger logger)
 	{
 		this.config = config;
+		this.logger = logger;
 	}
 
 
@@ -64,20 +71,29 @@ class ModelBuilder
 	Application createApplication()
 	{
 		string s = cast(string)std.file.read(this.config.getAclFile());
+		this.logger.info(format("configure load from file: [%s]", this.config.getAclFile()), "configuration");
+		
 		IConfigReader reader = new ConfigXmlReader(s);
 		this.config = reader.fill(this.config);
 
 		Application app = (new Application())
+			.setLogger(this.logger)
 			.setHomePath(this.config.getHomePath())
 			.setDefaultRepositoryPath(this.config.defaultRepositoryPath)
 			.setDefaultWorkingPath(this.config.defaultWorkingPath);
 
+		this.logger.log(format("configure: home path: [%s]", this.config.getHomePath()), "configuration");
+		this.logger.log(format("configure: default repository path path: [%s]", this.config.defaultRepositoryPath), "configuration");
+		this.logger.log(format("configure: default working path: [%s]", this.config.defaultWorkingPath), "configuration");
+
 		foreach (u; this.config.users) {
 			app.users ~= u;
+			this.logger.log(format("configure: user: [%s]", u.name), "configuration");
 		}
 
 		foreach (r; this.config.repositories) {
 			app.repositories ~= r;
+			this.logger.log(format("configure: repository: [%s]", r.name), "configuration");
 		}
 
 		return app;
@@ -132,8 +148,23 @@ class Application
 
 
 	/**
+	 * Loggovadlo.
+	 */
+	private Logger logger;
+
+
+	/**
+	 * Přiřazení logovadla.
+	 */
+	Application setLogger(Logger m)
+	{
+		this.logger = m;
+		return this;
+	}
+
+
+	/**
 	 * Cesta k úložišti repozitářů.
-	 * @return string
 	 */
 	Application setHomePath(string path)
 	{
@@ -210,22 +241,21 @@ class Application
 		//	Najdem uživatele
 		foreach (u; this.users) {
 			if (u.name == user.name) {
-				//writefln("user: %s", u.name);
 				//	Najdem repozitář
 				foreach (r; u.repositories) {
 					if ((r.name == repository.name) && (r.type == repository.type)) {
-						//writefln("  repo: %s", r.name);
 						//	Zkontrolujem oprávnění.
 						if (perm & r.permission) {
-							//writefln("    povoleno");
+							this.logger.log(format("allow(%s, %s, %d)", user.name, repository.name, perm), "auth");
 							return true;
 						}
-						//writefln("    odmíntuto");
+						this.logger.log(format("deny(%s, %s, %d)", user.name, repository.name, perm), "auth");
 						return false;
 					}
 				}
 			}
 		}
+		this.logger.log(format("not match(%s, %s, %d)", user.name, repository.name, perm), "auth");
 		return false;
 	}
 	unittest {
@@ -426,6 +456,7 @@ enum Permission
 	READ = 2,
 	WRITE = 4,
 	REMOVE = 8
+	
 }
 
 

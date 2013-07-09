@@ -199,9 +199,9 @@ class Command : AbstractCommand
 		auto a = split(cmd);
 		switch (a[0]) {
 			case "git-upload-pack":
-			case "git-receive-pack":
-				return Permission.READ;
 			case "git-upload-archive":
+				return Permission.READ;
+			case "git-receive-pack":
 				return Permission.WRITE;
 			default:
 				return Permission.DENY;

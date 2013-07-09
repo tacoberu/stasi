@@ -24,6 +24,7 @@ import stasi.responses;
 
 import std.stdio;
 import std.process;
+import std.string;
 
 
 /**
@@ -125,6 +126,12 @@ class Request
 	string getCommand()
 	{
 		return this.command;
+	}
+	
+	
+	string toString()
+	{
+		return format("user:[%s] - cmd:[%s]", this.user, this.command);
 	}
 
 

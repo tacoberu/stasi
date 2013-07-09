@@ -20,7 +20,6 @@ import stasi.model;
 
 import std.process;
 import std.xml;
-//import std.conv;
 import std.stdio;
 import std.array;
 import std.string;
@@ -79,6 +78,12 @@ class Config
 
 
 	/**
+	 * Kam se budou logovat výstupy.
+	 */
+	string logsPath = "/var/log/stasi/";
+
+
+	/**
 	 * Konstruktorem předám parametry z CLI.
 	 */
 	this (string[] args)
@@ -115,6 +120,7 @@ class Config
 	}
 
 
+
 	/**
 	 * Cesta k souboru s nastavení acl.
 	 *
@@ -131,6 +137,17 @@ class Config
 
 
 
+	/**
+	 * Cesta ke adresáři, do kterého budeme zapisovat logy.
+	 *
+	 * @return string
+	 */
+	string getLogsPath()
+	{
+		return this.logsPath;
+	}
+
+
 }
 
 
@@ -142,17 +159,14 @@ class Config
 interface IConfigReader
 {
 
-
 	/**
-	 *	Seznam uživatelů.
-	 *	@return array
+	 *	Naplnit Config pomocí readeru.
 	 */
 	Config fill(Config config);
 
-
-
-
 }
+
+
 
 /**
  * Čistě čtení xml souboru s uloženou konfigurací. Nijak nezohlednuje nastavení
@@ -161,6 +175,9 @@ interface IConfigReader
 class ConfigXmlReader : IConfigReader
 {
 
+	/**
+	 * Content of xml, where read to Config.
+	 */
 	private string content;
 
 
@@ -210,154 +227,210 @@ class ConfigXmlReader : IConfigReader
 		string nsstaci = "s:";
 		string nscontact = "c:";
 
-		check(this.content);
+		try {
+			check(this.content);
 
-		auto xml = new DocumentParser(this.content);
+			auto xml = new DocumentParser(this.content);
 
-		//	Zpracování NS.
-		foreach (k, ns; xml.tag.attr) {
-			switch (ns) {
-				case "urn:nermal/stasi":
-					nsstaci = k[6 .. $] ~ ":";
-					break;
-				case "urn:nermal/contact":
-					nscontact = k[6 .. $] ~ ":";
-					break;
-				default:
-					break;
-			}
-		}
-
-		//	Nejdříve konfigurace, skupiny, uživatele a repozitáře
-		xml.onStartTag[nsstaci ~ "setting"] = (ElementParser xml)
-		{
-			xml.onEndTag[nsstaci ~ "repo-path"] = (in Element e) {
-				config.defaultRepositoryPath = e.text();
-			};
-
-			xml.onEndTag[nsstaci ~ "working-path"] = (in Element e) {
-				config.defaultWorkingPath = e.text();
-			};
-
-			xml.parse();
-		};
-
-		xml.onStartTag[nsstaci ~ "group"] = (ElementParser xml)
-		{
-			string groupname = xml.tag.attr["name"];
-			if (groupname in this.groups) {
-				throw new InvalidConfigException(format("The group with name: [%s] already exists", groupname));
-			}
-			else {
-				this.groups[groupname] = new _Group(groupname);
+			//	Zpracování NS.
+			foreach (k, ns; xml.tag.attr) {
+				switch (ns) {
+					case "urn:nermal/stasi":
+						nsstaci = k[6 .. $] ~ ":";
+						break;
+					case "urn:nermal/contact":
+						nscontact = k[6 .. $] ~ ":";
+						break;
+					default:
+						break;
+				}
 			}
 
-			xml.onStartTag[nsstaci ~ "user"] = (ElementParser xml)
+			//	Nejdříve konfigurace, skupiny, uživatele a repozitáře
+			xml.onStartTag[nsstaci ~ "setting"] = (ElementParser xml)
 			{
-				this.groups[groupname].users ~= xml.tag.attr["ref"];
+				xml.onEndTag[nsstaci ~ "repo-path"] = (in Element e) {
+					config.defaultRepositoryPath = e.text();
+				};
+
+				xml.onEndTag[nsstaci ~ "working-path"] = (in Element e) {
+					config.defaultWorkingPath = e.text();
+				};
+
 				xml.parse();
 			};
 
-			xml.parse();
-		};
-
-		xml.onStartTag[nsstaci ~ "user"] = (ElementParser xml)
-		{
-			if ("name" in xml.tag.attr) {
-				config.users[xml.tag.attr["name"]] = new User(xml.tag.attr["name"]);
-			}
-
-			xml.parse();
-		};
-
-		xml.onStartTag[nsstaci ~ "repository"] = (ElementParser xml)
-		{
-			if (("name" in xml.tag.attr) && ("type" in xml.tag.attr)) {
-				config.repositories[xml.tag.attr["name"]] = new Repository(xml.tag.attr["name"], this.parseRepositoryType(xml.tag.attr["type"]));
-			}
-
-			xml.parse();
-		};
-
-		xml.onStartTag[nsstaci ~ "acl"] = (ElementParser xml)
-		{
-			xml.parse();
-		};
-
-		xml.parse();
-
-
-		//	Nakonec vztahy mezi repozitáři a uživateli.
-		xml = new DocumentParser(this.content);
-
-		xml.onStartTag[null] = (ElementParser xml)
-		{
-			xml.parse();
-		};
-
-		xml.onStartTag[nsstaci ~ "acl"] = (ElementParser xml)
-		{
-			// Seznam repozitářů v tomto acl-ku.
-			string[] repos;
-
-			xml.onStartTag[nsstaci ~ "repository"] = (ElementParser xml)
+			xml.onStartTag[nsstaci ~ "group"] = (ElementParser xml)
 			{
-				repos ~= xml.tag.attr["ref"];
-				xml.parse();
-			};
-
-			xml.onStartTag[nsstaci ~ "access"] = (ElementParser xml)
-			{
-				Permission perm = Permission.DENY;
-				foreach (s; split(xml.tag.attr["permission"], ",")) {
-					switch(s) {
-						case "init":
-							perm |= Permission.INIT;
-							break;
-						case "read":
-							perm |= Permission.READ;
-							break;
-						case "write":
-							perm |= Permission.WRITE;
-							break;
-						case "remove":
-							perm |= Permission.REMOVE;
-							break;
-						default:
-							break;
-					}
+				string groupname = xml.tag.attr["name"];
+				if (groupname in this.groups) {
+					throw new InvalidConfigException(format("The group with name: [%s] already exists", groupname));
+				}
+				else {
+					this.groups[groupname] = new _Group(groupname);
 				}
 
 				xml.onStartTag[nsstaci ~ "user"] = (ElementParser xml)
 				{
-					string name = xml.tag.attr["ref"];
-					foreach (repo; repos) {
-						if (! (name in config.users)) {
-							throw new InvalidConfigException(format("User [%s] is not declared.", name));
-						}
-						if (! (repo in config.repositories)) {
-							throw new InvalidConfigException(format("Repository [%s] is not declared.", repo));
-						}
-						config.users[name]
-							.repositories[repo] = new AccessRepository(
-								repo,
-								config.repositories[repo]
-									.type, perm);
-					}
+					this.groups[groupname].users ~= xml.tag.attr["ref"];
 					xml.parse();
 				};
+
+				xml.parse();
+			};
+
+			xml.onStartTag[nsstaci ~ "user"] = (ElementParser xml)
+			{
+				if ("name" in xml.tag.attr) {
+					config.users[xml.tag.attr["name"]] = new User(xml.tag.attr["name"]);
+				}
+
+				xml.parse();
+			};
+
+			xml.onStartTag[nsstaci ~ "repository"] = (ElementParser xml)
+			{
+				if (("name" in xml.tag.attr) && ("type" in xml.tag.attr)) {
+					config.repositories[xml.tag.attr["name"]] = new Repository(xml.tag.attr["name"], this.parseRepositoryType(xml.tag.attr["type"]));
+				}
+
+				xml.parse();
+			};
+
+			xml.onStartTag[nsstaci ~ "acl"] = (ElementParser xml)
+			{
 				xml.parse();
 			};
 
 			xml.parse();
-		};
 
-		xml.parse();
 
+			//	Nakonec vztahy mezi repozitáři a uživateli.
+			xml = new DocumentParser(this.content);
+
+			xml.onStartTag[null] = (ElementParser xml)
+			{
+				xml.parse();
+			};
+
+			xml.onStartTag[nsstaci ~ "acl"] = (ElementParser xml)
+			{
+				// Seznam repozitářů v tomto acl-ku.
+				string[] repos;
+
+				xml.onStartTag[nsstaci ~ "repository"] = (ElementParser xml)
+				{
+					repos ~= xml.tag.attr["ref"];
+					xml.parse();
+				};
+
+				xml.onStartTag[nsstaci ~ "access"] = (ElementParser xml)
+				{
+					Permission perm = Permission.DENY;
+					foreach (s; split(xml.tag.attr["permission"], ",")) {
+						switch(s) {
+							case "init":
+								perm |= Permission.INIT;
+								break;
+							case "read":
+								perm |= Permission.READ;
+								break;
+							case "write":
+								perm |= Permission.WRITE;
+								break;
+							case "remove":
+								perm |= Permission.REMOVE;
+								break;
+							default:
+								break;
+						}
+					}
+
+					xml.onStartTag[nsstaci ~ "user"] = (ElementParser xml)
+					{
+						string name = xml.tag.attr["ref"];
+						foreach (repo; repos) {
+							if (! (name in config.users)) {
+								throw new InvalidConfigException(format("User [%s] is not declared.", name));
+							}
+							if (! (repo in config.repositories)) {
+								throw new InvalidConfigException(format("Repository [%s] is not declared.", repo));
+							}
+							config.users[name]
+								.repositories[repo] = new AccessRepository(
+									repo,
+									config.repositories[repo]
+										.type, perm);
+						}
+						xml.parse();
+					};
+					xml.parse();
+				};
+
+				xml.parse();
+			};
+
+			xml.parse();
+		}
+		catch (std.xml.CheckException e) {
+			throw new InvalidConfigException(std.string.format("Invalid xml format: %s.", split(e.toString(), "\n")));
+		}
+		
 		return config;
 	}
 
 }
+unittest {
+		string s = "<?xml version=\"1.0\"?>
+<s:stasi xmlns:s=\"urn:nermal/stasi\"
+			xmlns:c=\"urn:nermal/contact\">
+
+	<s:setting>
+		<s:repo-path>Development/lab/stasi</s:repo-path>
+		<s:working-path>Development/lab/working</s:working-path>
+	</s:setting>		
+
+	<s:user name=\"taco\">
+		<c:email>mt@taco-beru.name</c:email>
+	</s:user>
+
+	<s:user name=\"fean\">
+		<c:email>mt@taco-beru.name</c:email>
+	</s:userx>
+
+
+	<s:repository name=\"testing.git\" type=\"git\" />
+	<s:repository name=\"projekt51\" type=\"git\" />
+	<s:repository name=\"zizkov.hg\" type=\"mercurial\" />
+	<s:repository name=\"koralky.hg\" type=\"mercurial\" />
+
+
+	<s:acl>
+		<s:repository ref=\"testing.git\" />
+		<s:access permission=\"read,write\">
+			<s:user ref=\"taco\" />
+			<s:user ref=\"vojta\" />
+			<s:user ref=\"fean\" />
+		</s:access>
+	</s:acl>
+
+
+	<s:user name=\"vojta\">
+		<c:email>vojta@example.org</c:email>
+	</s:user>
+
+
+</s:stasi>";
+
+	ConfigXmlReader parser = new ConfigXmlReader(s);
+	try {
+		Config config = parser.fill(new Config([]));
+	}
+	catch (InvalidConfigException e) {
+		assert("Invalid xml format: [Line 16, column 2: end tag name \"s:userx\" differs from start tag name \"s:user\",Line 14, column 2: Element,Line 14, column 2: Content,Line 2, column 1: Element,Line 1, column 1: Document,].", e.msg);
+	}
+}
+
 unittest {
 		string s = "<?xml version=\"1.0\"?>
 <s:stasi xmlns:s=\"urn:nermal/stasi\"

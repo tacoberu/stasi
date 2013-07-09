@@ -19,7 +19,11 @@
  */
 module taco.logging;
 
-import io = std.stdio;
+import std.stdio;
+import std.regex;
+import std.datetime;
+import std.string;
+import std.file;
 
 
 enum Level
@@ -167,14 +171,15 @@ class Logger : ILogger
 	private class Pair
 	{
 		/**
-		 * Odpěratelé logů.
+		 * Odběratelé logů.
 		 */
 		public IWriter writer;
 
 		/**
-		 * Odpěratelé logů.
+		 * Filtry logů.
 		 */
 		public IFilter filter;
+
 
 		this (IWriter writer, IFilter filter)
 		{
@@ -187,7 +192,7 @@ class Logger : ILogger
 
 
 	/**
-	 * Odpěratelé logů.
+	 * Odpěratelé logů s polu s loku.
 	 */
 	private Pair[] listener;
 
@@ -195,8 +200,6 @@ class Logger : ILogger
 
 	/**
 	 *	Přiřadí writer, do kterého se bude zapisovat.
-	 *
-	 *	@return ILogger
 	 */
 	Logger addListener(IWriter writer, IFilter filter)
 	{
@@ -208,16 +211,15 @@ class Logger : ILogger
 
 	/**
 	 *	Zda toto bude do něčeho logováno.
-	 *
-	 *	@return bool
-	 * /
-	public function canLogged($type = Null, $level = self::LOG)
+	 */
+	bool canLogged(string type = "*", Level level = Level.LOG)
 	{
-		foreach ($this->listener as $node) {
-			if ($node->filter->filter($level, $type)) {
+		foreach(pair; this.listener) {
+			if (pair.filter.filter(level, type)) {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
@@ -225,8 +227,6 @@ class Logger : ILogger
 
 	/**
 	 *	Zaloguje pro level LOG
-	 *
-	 *	@return ILogger
 	 */
 	ILogger log(string message, string type = "*", Level level = Level.LOG)
 	{
@@ -243,8 +243,6 @@ class Logger : ILogger
 
 	/**
 	 *	Zaloguje pro level TRACE
-	 *
-	 *	@return ILogger
 	 */
 	ILogger trace(string message, string type = "*")
 	{
@@ -255,8 +253,6 @@ class Logger : ILogger
 
 	/**
 	 *	Zaloguje pro level DEBUG
-	 *
-	 *	@return ILogger
 	 */
 	ILogger _debug(string message, string type = "*")
 	{
@@ -267,8 +263,6 @@ class Logger : ILogger
 
 	/**
 	 *	Zaloguje pro level INFO
-	 *
-	 *	@return ILogger
 	 */
 	ILogger info(string message, string type = "*")
 	{
@@ -279,8 +273,6 @@ class Logger : ILogger
 
 	/**
 	 *	Zaloguje pro level WARN
-	 *
-	 *	@return ILogger
 	 */
 	ILogger warn(string message, string type = "*")
 	{
@@ -291,8 +283,6 @@ class Logger : ILogger
 
 	/**
 	 *	Zaloguje pro level ERROR
-	 *
-	 *	@return ILogger
 	 */
 	ILogger error(string message, string type = "*")
 	{
@@ -303,8 +293,6 @@ class Logger : ILogger
 
 	/**
 	 *	Zaloguje pro level FATAL
-	 *
-	 *	@return ILogger
 	 */
 	ILogger fatal(string message, string type = "*")
 	{
@@ -315,15 +303,13 @@ class Logger : ILogger
 
 	/**
 	 *	Vrátí sub logger za účelem zanoření.
-	 *
-	 *	@return
 	 * /
-	public function getSubLog($name)
+	Logger getSubLog(string name)
 	{
 	}
-
-
 	//*/
+
+
 }
 unittest {
 	ILogger logger = new Logger();
@@ -402,18 +388,10 @@ class CommonFilter : IFilter
 abstract class AbstractWriter : IWriter
 {
 
-	/**
-	 * Překladová maska.
-	 * /
-	private static levelNames = array(
-			Log::TRACE => "TRACE",
-			Log::DEBUG => "DEBUG',
-			Log::LOG =>   "LOG  ',
-			Log::INFO =>  "INFO ',
-			Log::WARN =>  "WARN ',
-			Log::ERROR => 'ERROR',
-			Log::FATAL => 'FATAL',
-			);
+	const PLACE_MESSAGE = "%message%";
+	const PLACE_LEVEL = "%level%";
+	const PLACE_TYPE = "%type%";
+	const PLACE_DATETIME = "%datetime%";
 
 
 	/**
@@ -431,7 +409,7 @@ abstract class AbstractWriter : IWriter
 	/**
 	 * Definice podmínky.
 	 */
-	public this(string formating = "%message%", string sepparator = "\n")
+	this(string formating = this.PLACE_MESSAGE, string sepparator = "\n")
 	{
 		this.formating = formating;
 		this.sepparator = sepparator;
@@ -441,65 +419,43 @@ abstract class AbstractWriter : IWriter
 
 	/**
 	 *	Naformátuje zprávu.
-	 *
-	 *	@return self
 	 */
 	protected string format(string message, Level level = Level.INFO, string type = "*")
 	{
-		/*
-		// Pokud takovouto informaci požadujeme.
-		if ((strpos($this->formating, '%class%') !== False)
-				|| (strpos($this->formating, '%method%') !== False)
-				|| (strpos($this->formating, '%line%') !== False)) {
-			if (PHP_MAJOR_VERSION >= 5 && PHP_MINOR_VERSION >= 4) {
-				$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 4);
-			}
-			elseif (PHP_MAJOR_VERSION >= 5 && PHP_MINOR_VERSION >= 3 && PHP_RELEASE_VERSION >= 6) {
-				$trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-			}
-			else {
-				$trace = debug_backtrace();
-			}
-
-			$class = $trace[3]['class'];
-			$method = $trace[3]['function'];
-			$line = $trace[2]['line'];
-			$trace = Null; unset($trace);
-
-			$placeholders = array(
-					'%message%' => $message,
-					'%level%' => self::formatLevel($level),
-					'%type%' => $type,
-					'%datetime%' => date('Y-m-d H:i:s'),
-					'%class%' => $class,
-					'%method%' => $method,
-					'%line%' => $line,
-					);
-		}
-		else {
-			$placeholders = array(
-					'%message%' => $message,
-					'%level%' => self::formatLevel($level),
-					'%type%' => $type,
-					'%datetime%' => date('Y-m-d H:i:s')
-					);
-		}
-
-		return strtr($this->formating, $placeholders) . $this->sepparator;
-		* */
-		return message;
+		string s = this.formating;
+		s = replace(s, regex(r"" ~ this.PLACE_MESSAGE,"g"), message);
+		s = replace(s, regex(r"" ~ this.PLACE_LEVEL,"g"), this.formatLevel(level));
+		s = replace(s, regex(r"" ~ this.PLACE_TYPE, "g"), type);
+		s = replace(s, regex(r"" ~ this.PLACE_DATETIME, "g"), std.string.format("%-27s", Clock.currTime().toISOExtString()));
+		s ~= this.sepparator;
+		
+		return s;
 	}
 
 
 
 	/**
 	 *	int to string
-	 * /
-	private static function formatLevel($level)
+	 */
+	private string formatLevel(Level level)
 	{
-		return self::$levelNames[$level];
+		final switch (level) {
+			case Level.TRACE:
+				return "TRACE";
+			case Level.DEBUG:
+				return "DEBUG";
+			case Level.LOG:
+				return "LOG  ";
+			case Level.INFO:
+				return "INFO ";
+			case Level.WARN:
+				return "WARN ";
+			case Level.ERROR:
+				return "ERROR";
+			case Level.FATAL:
+				return "FATAL";
+		}
 	}
-	*/
 
 }
 
@@ -516,13 +472,61 @@ class OutputWriter : AbstractWriter
 {
 
 	/**
-	 *	Zaloguje zprávu.
-	 *
-	 *	@return self
+	 * Definice podmínky.
 	 */
-	public OutputWriter write(string message, Level level = Level.INFO, string type = "*")
+	this(string formating = this.PLACE_MESSAGE, string sepparator = "\n")
 	{
-		io.write(this.format(message, level, type));
+		super(formating, sepparator);
+	}
+
+
+
+	/**
+	 *	Zaloguje zprávu.
+	 */
+	IWriter write(string message, Level level = Level.INFO, string type = "*")
+	{
+		std.stdio.write(this.format(message, level, type));
+		return this;
+	}
+
+
+}
+
+
+
+
+/**
+ *	Logy budem vypisovat do souboru.
+ *
+ *	@author     Martin Takáč <taco@taco-beru.name>
+ */
+class FileWriter : AbstractWriter
+{
+	
+	const DEFAULT_FORMAT = "[" ~ this.PLACE_DATETIME ~ "] [" ~ this.PLACE_LEVEL ~ "] " ~ this.PLACE_MESSAGE;
+	
+	
+	private File file;
+	
+	
+	/**
+	 * Definice podmínky.
+	 */
+	this(File f, string formating = this.DEFAULT_FORMAT, string sepparator = "\n")
+	{
+		super(formating, sepparator);
+		this.file = f;
+	}
+
+
+
+	/**
+	 *	Zaloguje zprávu.
+	 */
+	IWriter write(string message, Level level = Level.INFO, string type = "*")
+	{
+		this.file.write(this.format(message, level, type));
 		return this;
 	}
 

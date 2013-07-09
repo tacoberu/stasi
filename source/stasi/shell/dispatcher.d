@@ -125,7 +125,7 @@ class Dispatcher
 	IResponse dispatch(Request request)
 	{
 		ICommand action;
-		//this.getLogger().trace('globals', GLOBALS);
+		this.getLogger().trace(request.toString(), "request");
 
 		//	Rozřazuje, zda se jedná o příkazy pro git, nebo pro mercurial,
 		//	nebo nějaké předdefinované, a nebo přihlášení na server.
@@ -143,6 +143,7 @@ class Dispatcher
 		action.setLogger(this.getLogger());
 
 		IResponse response = this.fireAction(request, action);
+		this.getLogger().trace(response.toString(), "response");
 
 		return response;
 	}

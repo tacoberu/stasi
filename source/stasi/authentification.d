@@ -20,7 +20,7 @@ module stasi.authentification;
 /**
  * Přístup odmítnut.
  */
-class AccessDeniedException : Exception
+class UserException : Exception
 {
 	this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
 	{
@@ -29,7 +29,19 @@ class AccessDeniedException : Exception
 }
 
 
-class NotFoundException : Exception
+/**
+ * Přístup odmítnut.
+ */
+class AccessDeniedException : UserException
+{
+	this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+	{
+		super(msg, file, line, next);
+	}
+}
+
+
+class NotFoundException : UserException
 {
 	this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
 	{

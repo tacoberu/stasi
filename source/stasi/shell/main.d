@@ -17,12 +17,16 @@
 import std.stdio;
 
 
+import std.string;
+
 import taco.logging;
+
 import stasi.config;
 import stasi.routing;
 import stasi.dispatcher;
 import stasi.model;
 import stasi.responses;
+import auth = stasi.authentification;
 
 import git = stasi.adapters.git;
 import mercurial = stasi.adapters.mercurial;
@@ -44,7 +48,11 @@ int main(string[] args)
 		config = new Config(args);
 		//config.addParser(new ConfigXmlReader());
 		logger = new Logger();
-		//logger.addListener(new FileWriter(config.getLogsPath()), new CommonFilter());
+		//logger.addListener(new OutputWriter(), new CommonFilter(Level.TRACE));
+		logger.addListener(
+				new FileWriter(File((config.getLogsPath() ~ "stasi.log"), "a")),
+				new CommonFilter(Level.TRACE)
+				);
 	}
 	catch (Exception e) {
 		stderr.writefln("[fatal] (Staci): cannot initialize - %s", e.msg);
@@ -53,22 +61,34 @@ int main(string[] args)
 
 	//	Process
 	try {
+		logger.info("== start ==");
 		Request request = (new Router())
 				.createRequest(args);
-		(new Dispatcher(config, new ModelBuilder(config)))
+		int ret = (new Dispatcher(config, new ModelBuilder(config, logger)))
 				.addRoute(new git.Router())
 				.addRoute(new mercurial.Router())
 				.setLogger(logger)
 				.dispatch(request)
 				.fetch();
+		return ret;
 	}
-	catch (Exception e) {
-		stderr.writefln("[fatal] (Staci): %s", e.msg);
-		//logger.trace('failed', e.msg);
+	catch (auth.UserException e) {
+		stderr.writefln("[fatal] (Staci): %s", e.msg ? e.msg : e.classinfo.name);
+		logger.warn((e.msg ? e.msg : e.classinfo.name),	"auth");
 		return 2;
 	}
+	catch (Exception e) {
+		stderr.writefln("[fatal] (Staci): %s", e.msg ? e.msg : e.classinfo.name);
+		logger.warn(std.string.format("MSG: %s\nFILE: %s\nLINE: %d\nTRACE:\n%s\n--------------------------------\n", 
+						(e.msg ? e.msg : e.classinfo.name), 
+						e.file, 
+						e.line, 
+						e.info.toString()),
+				"fail");
+		return 3;
+	}
 
-	return 0;
+	return 4;
 }
 
 

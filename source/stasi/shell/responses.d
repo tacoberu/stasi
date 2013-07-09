@@ -19,6 +19,7 @@ module stasi.responses;
 
 import std.stdio;
 import std.process;
+import std.string;
 
 
 /**
@@ -33,6 +34,8 @@ interface IResponse
 	int fetch();
 
 
+	string toString();
+
 }
 
 
@@ -45,6 +48,9 @@ class ExecResponse : IResponse
 {
 
 
+	/**
+	 * Příkaz pro vykonání.
+	 */
 	private string command;
 
 
@@ -55,7 +61,7 @@ class ExecResponse : IResponse
 	int fetch()
 	{
 		if (this.command) {
-			writefln(std.process.shell(this.command));
+			std.process.system(this.command);
 		}
 		return 0;
 	}
@@ -63,7 +69,7 @@ class ExecResponse : IResponse
 
 
 	/**
-	 *	Poslání na výstup.
+	 *	Nastavení příkazu.
 	 */
 	ExecResponse setCommand(string command)
 	{
@@ -72,6 +78,11 @@ class ExecResponse : IResponse
 	}
 
 
+
+	string toString()
+	{
+		return format("cmd:[%s]", this.command);
+	}
 
 
 }
