@@ -27,3 +27,22 @@ class AccessDeniedException : Exception
 		super(msg, file, line, next);
 	}
 }
+
+
+class NotFoundException : Exception
+{
+	this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+	{
+		super(msg, file, line, next);
+	}
+}
+
+
+
+class RepositoryNotFoundException : NotFoundException
+{
+	this(string msg, string file = __FILE__, size_t line = __LINE__, Throwable next = null)
+	{
+		super(msg, file, line, next);
+	}
+}

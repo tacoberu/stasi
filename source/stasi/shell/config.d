@@ -66,6 +66,17 @@ class Config
 	public Repository[string] repositories;
 
 
+	/**
+	 * Kde se budou defaultně hledat repozitáře.
+	 */
+	string defaultRepositoryPath = "repos";
+
+
+	/**
+	 * Kam se budou defaultně checkoutovat repozitáře.
+	 */
+	string defaultWorkingPath = "working";
+
 
 	/**
 	 * Konstruktorem předám parametry z CLI.
@@ -217,12 +228,25 @@ class ConfigXmlReader : IConfigReader
 			}
 		}
 
-		//	Nejdříve skupiny a uživatele a repozitáře
+		//	Nejdříve konfigurace, skupiny, uživatele a repozitáře
+		xml.onStartTag[nsstaci ~ "setting"] = (ElementParser xml)
+		{
+			xml.onEndTag[nsstaci ~ "repo-path"] = (in Element e) {
+				config.defaultRepositoryPath = e.text();
+			};
+
+			xml.onEndTag[nsstaci ~ "working-path"] = (in Element e) {
+				config.defaultWorkingPath = e.text();
+			};
+
+			xml.parse();
+		};
+
 		xml.onStartTag[nsstaci ~ "group"] = (ElementParser xml)
 		{
 			string groupname = xml.tag.attr["name"];
 			if (groupname in this.groups) {
-				writefln("cau group už existuje ------");
+				throw new InvalidConfigException(format("The group with name: [%s] already exists", groupname));
 			}
 			else {
 				this.groups[groupname] = new _Group(groupname);
@@ -338,6 +362,12 @@ unittest {
 		string s = "<?xml version=\"1.0\"?>
 <s:stasi xmlns:s=\"urn:nermal/stasi\"
 			xmlns:c=\"urn:nermal/contact\">
+
+	<s:setting>
+		<s:repo-path>Development/lab/stasi</s:repo-path>
+		<s:working-path>Development/lab/working</s:working-path>
+	</s:setting>		
+
 
 	<!--
 		Skupina uživatelů
@@ -506,6 +536,8 @@ unittest {
 	assert(config.repositories["stasi.git"].name == "stasi.git");
 	assert(config.repositories["testing.git"].name == "testing.git");
 
+	assert(config.defaultRepositoryPath == "Development/lab/stasi");
+	assert(config.defaultWorkingPath == "Development/lab/working");
 }
 
 

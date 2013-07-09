@@ -63,13 +63,14 @@ class ModelBuilder
 	 */
 	Application createApplication()
 	{
-		Application app = new Application();
-		app.setHomePath(this.config.getHomePath());
-		//app.setRepositoryPath(this.config.getRepoPath());
-
 		string s = cast(string)std.file.read(this.config.getAclFile());
 		IConfigReader reader = new ConfigXmlReader(s);
 		this.config = reader.fill(this.config);
+
+		Application app = (new Application())
+			.setHomePath(this.config.getHomePath())
+			.setDefaultRepositoryPath(this.config.defaultRepositoryPath)
+			.setDefaultWorkingPath(this.config.defaultWorkingPath);
 
 		foreach (u; this.config.users) {
 			app.users ~= u;
@@ -104,6 +105,13 @@ class Application
 	 * Cesta k defaultnímu umístění repozitářů.
 	 */
 	private string repositoryPath;
+	
+	
+	/**
+	 * Cesta k defaultnímu umístění pískoviště repozitářů.
+	 */
+	private string defaultWorkingPath;
+	
 
 	/**
 	 * Cesta k domácímu adresáři.
@@ -160,6 +168,31 @@ class Application
 
 
 	/**
+	 * Cesta k defaultnímu úložišti repozitářů.
+	 */
+	Application setDefaultWorkingPath(string path)
+	{
+		this.defaultWorkingPath = path;
+		return this;
+	}
+
+
+
+	/**
+	 * Cesta k úložišti repozitářů.
+	 */
+	string getDefaultWorkingPath()
+	{
+		return this.defaultWorkingPath;
+	}
+	unittest {
+		Application app = (new Application()).setDefaultWorkingPath("woriks");
+		assert("woriks", app.getDefaultWorkingPath());
+	}
+
+
+
+	/**
 	 * Zda se uživatel může skrze shell přihlašovat na server.
 	 */
 	bool isAllowedSignin(User user)
@@ -209,6 +242,21 @@ class Application
 		assert(! app.isAllowed(new User("foo"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.INIT));
 		assert(! app.isAllowed(new User("too"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.WRITE));
 		assert(! app.isAllowed(new User("too"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.READ));
+	}
+
+
+
+	/**
+	 * Existence repozitáře.
+	 */
+	bool hasRepository(string name)
+	{
+		foreach (repo; this.repositories) {
+			if (repo.name == name) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 

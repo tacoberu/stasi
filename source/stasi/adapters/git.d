@@ -166,6 +166,10 @@ class Command : AbstractCommand
 		Repository repo = new Repository(original, RepositoryType.GIT);
 		Permission perm = this.makePermission(cmd);
 
+		if (! this.model.application.hasRepository(original)) {
+			throw new RepositoryNotFoundException(format("Repository: [%s] not found.", original));
+		}
+
 		if (! this.model.application.isAllowed(new User(request.getUser()), repo, perm)) {
 			final switch (perm) {
 				case Permission.INIT:
@@ -234,7 +238,7 @@ class Command : AbstractCommand
 	 */
 	private string maskedRepository(string cmd)
 	{
-		string prefix = "abc/";
+		string prefix = this.model.application.getDefaultRepositoryPath();
 		return replace(cmd, regex(`([\w-]+\s+')([^']+)('.*)`), "$1" ~ prefix ~ "$2$3");
 	}
 
