@@ -17,6 +17,7 @@
 
 module stasi.adapters.git;
 
+import stasi.request;
 import stasi.routing;
 import stasi.model;
 import stasi.commands;
@@ -54,6 +55,7 @@ class Router : IRoute
 		}
 		return false;
 	}
+/*
 	unittest {
 		Router r = new Router();
 		Request req = (new Request()).setUser("fean").setCommand("ls -la");
@@ -74,7 +76,7 @@ class Router : IRoute
 		Request req = (new Request()).setUser("fean").setCommand("git-receive-pack 'projects/stasi.git'");
 		assert(r.match(req) == true);
 	}
-
+*/
 
 
 	/**

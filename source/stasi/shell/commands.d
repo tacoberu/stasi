@@ -18,6 +18,9 @@
 module stasi.commands;
 
 import taco.logging;
+
+
+import stasi.request;
 import stasi.authentification;
 import stasi.model;
 import stasi.routing;

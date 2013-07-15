@@ -15,13 +15,13 @@
  */
 
 import std.stdio;
-
-
 import std.string;
+import std.process;
 
 import taco.logging;
 
 import stasi.config;
+import stasi.request;
 import stasi.routing;
 import stasi.dispatcher;
 import stasi.model;
@@ -42,15 +42,21 @@ int main(string[] args)
 {
 	Config config;
 	Logger logger;
+	Request request;
 
 	//	Inicializace
 	try {
-		config = new Config(args);
+		request = new Request(args, environment.toAA());
+
+		//setenv("STASI_VERSION", "0.0.1", true); 
+		// environment["STASI_VERSION"] = "0.0.1";
+		config = new Config(request);
 		//config.addParser(new ConfigXmlReader());
+
 		logger = new Logger();
-		//logger.addListener(new OutputWriter(), new CommonFilter(Level.TRACE));
+		logger.addListener(new OutputWriter(), new CommonFilter(Level.TRACE));
 		logger.addListener(
-				new FileWriter(File((config.getLogsPath() ~ "stasi.log"), "a")),
+				new FileWriter(File((config.logsPath ~ "stasi.log"), "a")),
 				new CommonFilter(Level.TRACE)
 				);
 	}
@@ -58,12 +64,12 @@ int main(string[] args)
 		stderr.writefln("[fatal] (Staci): cannot initialize - %s", e.msg);
 		return 1;
 	}
-//*
+
 	//	Process
 	try {
 		logger.info("== start ==");
-		Request request = (new Router())
-				.createRequest(args);
+		//Request request = (new Router())
+				//.createRequest(args);
 		int ret = (new Dispatcher(config, new ModelBuilder(config, logger)))
 				.addRoute(new git.Router())
 				.addRoute(new mercurial.Router())

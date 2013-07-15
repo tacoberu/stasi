@@ -27,17 +27,26 @@ import std.string;
 
 
 /**
- *	Model.
+ *	Továrna na modely.
  */
 class ModelBuilder
 {
 
+	/**
+	 * Nastavení aplikace, práv, uživatelů, repozitářů.
+	 */
 	private Config config;
 	
 	
+	/**
+	 * Podrobné zaznamenávávní toho, co se děje.
+	 */
 	private Logger logger;
 
 
+	/**
+	 * Kořenový model aplikace.
+	 */
 	private Application _application;
 
 
@@ -70,30 +79,30 @@ class ModelBuilder
 	 */
 	Application createApplication()
 	{
-		string s = cast(string)std.file.read(this.config.getAclFile());
-		this.logger.info(format("configure load from file: [%s]", this.config.getAclFile()), "configuration");
+		string s = cast(string)std.file.read(this.config.configFile);
+		this.logger.info(format("load file: [%s]", this.config.configFile), "configuration");
 		
 		IConfigReader reader = new ConfigXmlReader(s);
 		this.config = reader.fill(this.config);
 
 		Application app = (new Application())
 			.setLogger(this.logger)
-			.setHomePath(this.config.getHomePath())
+			.setHomePath(this.config.homePath)
 			.setDefaultRepositoryPath(this.config.defaultRepositoryPath)
 			.setDefaultWorkingPath(this.config.defaultWorkingPath);
 
-		this.logger.log(format("configure: home path: [%s]", this.config.getHomePath()), "configuration");
-		this.logger.log(format("configure: default repository path path: [%s]", this.config.defaultRepositoryPath), "configuration");
-		this.logger.log(format("configure: default working path: [%s]", this.config.defaultWorkingPath), "configuration");
+		this.logger.log(format("home path: [%s]", this.config.homePath), "configuration");
+		this.logger.log(format("default repository path path: [%s]", this.config.defaultRepositoryPath), "configuration");
+		this.logger.log(format("default working path: [%s]", this.config.defaultWorkingPath), "configuration");
 
 		foreach (u; this.config.users) {
 			app.users ~= u;
-			this.logger.log(format("configure: user: [%s]", u.name), "configuration");
+			this.logger.log(format("user: [%s]", u.name), "configuration");
 		}
 
 		foreach (r; this.config.repositories) {
 			app.repositories ~= r;
-			this.logger.log(format("configure: repository: [%s]", r.name), "configuration");
+			this.logger.log(format("repository: [%s]", r.name), "configuration");
 		}
 
 		return app;
@@ -106,7 +115,7 @@ class ModelBuilder
 
 
 /**
- *	Zpracovává příkazy na request.
+ *	Kořenový model aplikace.
  */
 class Application
 {
@@ -191,10 +200,12 @@ class Application
 	{
 		return this.repositoryPath;
 	}
+	/*
 	unittest {
 		Application app = (new Application()).setDefaultRepositoryPath("repos");
 		assert("repos", app.getDefaultRepositoryPath());
 	}
+	* */
 
 
 
@@ -216,11 +227,12 @@ class Application
 	{
 		return this.defaultWorkingPath;
 	}
+	/*
 	unittest {
 		Application app = (new Application()).setDefaultWorkingPath("woriks");
 		assert("woriks", app.getDefaultWorkingPath());
 	}
-
+	*/
 
 
 	/**
@@ -258,6 +270,7 @@ class Application
 		this.logger.log(format("not match(%s, %s, %d)", user.name, repository.name, perm), "auth");
 		return false;
 	}
+	/*
 	unittest {
 		Application app = new Application();
 		User user = new User("foo");
@@ -273,7 +286,7 @@ class Application
 		assert(! app.isAllowed(new User("too"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.WRITE));
 		assert(! app.isAllowed(new User("too"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.READ));
 	}
-
+	*/
 
 
 	/**
@@ -381,12 +394,13 @@ class User
 	}
 
 }
+/*
 unittest {
 	User u = new User("taco");
 	assert("taco", u.name);
 	assert("taco", u.email);
 }
-
+*/
 
 
 

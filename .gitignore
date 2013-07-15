@@ -6,3 +6,4 @@ main
 *~
 *.bak
 /stasi-shell.test
+/stasi.test

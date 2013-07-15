@@ -16,6 +16,7 @@
 
 module stasi.config;
 
+import stasi.request;
 import stasi.model;
 
 import std.process;
@@ -46,23 +47,27 @@ class Config
 {
 
 	/**
-	 * Zpracovaný seznam akcí.
+	 * Defaultní umístění konfiguračního souboru.
 	 */
-	private string home;
-
+	const DEFAULT_CONFIG_FILE = ".config/stasi/config.xml";
 
 
 	/**
-	 * Seznam uživatelů. Uživatel je jedinečnej podle svého jména.
+	 * Defaultní umístění logů.
 	 */
-	public User[string] users;
-
+	const DEFAULT_LOGS_PATH = "/var/log/stasi/";
 
 
 	/**
-	 * Seznam repositářů. Repozitář je jedinečnej podle svého jména.
+	 * Umístění domovského adresáře.
 	 */
-	public Repository[string] repositories;
+	string homePath;
+
+
+	/**
+	 * Soubor, ze kterého načítáme konfiguraci.
+	 */
+	string configFile;
 
 
 	/**
@@ -80,21 +85,42 @@ class Config
 	/**
 	 * Kam se budou logovat výstupy.
 	 */
-	string logsPath = "/var/log/stasi/";
+	string logsPath = this.DEFAULT_LOGS_PATH;
+
+
+
+	/**
+	 * Seznam uživatelů. Uživatel je jedinečnej podle svého jména.
+	 */
+	User[string] users;
+
+
+
+	/**
+	 * Seznam repositářů. Repozitář je jedinečnej podle svého jména.
+	 */
+	Repository[string] repositories;
 
 
 	/**
 	 * Konstruktorem předám parametry z CLI.
 	 */
-	this (string[] args)
+	this (Request request)
 	{
-		this.home = environment.get("HOME");
+		this.homePath = request.homePath;
+		if (request.configFile) {
+			this.configFile = request.configFile;
+		}
+		else {
+			this.configFile = this.homePath ~ "/" ~ this.DEFAULT_CONFIG_FILE;
+		}
 	}
+
 
 
 	/**
 	 * Cesta ke kořeni domovského adresáře.
-	 */
+	 * /
 	Config setHomePath(string m)
 	{
 		//ret = rtrim(ret, '/\\');
@@ -108,7 +134,7 @@ class Config
 	 * Cesta ke kořeni domovského adresáře.
 	 *
 	 * @return string
-	 */
+	 * /
 	string getHomePath()
 	{
 		//ret = rtrim(ret, '/\\');
@@ -122,17 +148,29 @@ class Config
 
 
 	/**
+	 * Z jakého souboru se načítá konfigurace.
+	 * /
+	Config setConfigFile(string m)
+	{
+		//ret = rtrim(ret, '/\\');
+		this.configFile = m;
+		return this;
+	}
+
+
+
+	/**
 	 * Cesta k souboru s nastavení acl.
 	 *
 	 * @return string
-	 */
+	 * /
 	string getAclFile()
 	{
-		return this.getHomePath() ~ "/.config/stasi/access.xml";
+		return this.configFile;
 	}
 	unittest {
 		Config c = (new Config(["main", "build", "install"])).setHomePath("/home/stasi");
-		assert(c.getAclFile(), "/home/stasi/.config/stasi/access.xml");
+		assert(c.getAclFile(), "/home/stasi/.config/stasi/config.xml");
 	}
 
 
@@ -141,12 +179,12 @@ class Config
 	 * Cesta ke adresáři, do kterého budeme zapisovat logy.
 	 *
 	 * @return string
-	 */
+	 * /
 	string getLogsPath()
 	{
 		return this.logsPath;
 	}
-
+	//*/
 
 }
 
@@ -154,7 +192,7 @@ class Config
 
 
 /**
- *	Konkrétní konfigurace balíčku.
+ *	Naplnění configurace z něčeho.
  */
 interface IConfigReader
 {
@@ -380,6 +418,7 @@ class ConfigXmlReader : IConfigReader
 	}
 
 }
+/*
 unittest {
 		string s = "<?xml version=\"1.0\"?>
 <s:stasi xmlns:s=\"urn:nermal/stasi\"
@@ -613,3 +652,4 @@ unittest {
 }
 
 
+*/

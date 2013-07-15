@@ -18,6 +18,8 @@
 module stasi.dispatcher;
 
 import taco.logging;
+
+import stasi.request;
 import stasi.config;
 import stasi.model;
 import stasi.routing;
@@ -54,7 +56,7 @@ class Dispatcher
 
 
 	/**
-	 *
+	 * Seznam rout, které zpracovávají vstup.
 	 */
 	private IRoute[] routers;
 
@@ -132,7 +134,7 @@ class Dispatcher
 		//	nebo nějaké předdefinované, a nebo přihlášení na server.
 		foreach (r; this.routers) {
 			if (r.match(request)) {
-				this.logger.trace(format("router: %s", r.className), "route");
+				this.logger.trace(format("route.class: %s", r.className), "route");
 				action = r.getAction(this.model);
 				break;
 			}
@@ -142,7 +144,7 @@ class Dispatcher
 			action = new OriginalCommand(this.model);
 		}
 
-		this.logger.trace(format("action: %s", action.className), "request");
+		this.logger.trace(format("action=[%s]", action.className), "dispatch");
 		action.setLogger(this.logger);
 
 		IResponse response = this.fireAction(request, action);

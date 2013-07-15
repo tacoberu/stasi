@@ -18,6 +18,7 @@
 module stasi.routing;
 
 
+import stasi.request;
 import stasi.model;
 import stasi.commands;
 import stasi.responses;
@@ -44,6 +45,9 @@ interface IRoute
 	ICommand getAction(ModelBuilder model);
 
 
+	/**
+	 * Jméno této třídy.
+	 */
 	@property string className();
 
 }
@@ -59,100 +63,42 @@ class Router
 	/**
 	 * Vytvoření instance requestu.
 	 * @param array args Seznam parametrů s CLI.
-	 */
+	 * /
 	Request createRequest(string[] args)
 	{
 		Request request = new Request();
-		if (args.length > 1) {
-			request.setUser(args[1]);
+		if (args.length > 2) {
+			switch (args[1]) {
+				case "shell":
+					request.action = Action.SHELL;
+					break;
+				case "verify-config":
+					request.action = Action.VERIFY_CONFIG;
+					break;
+				case "version":
+					request.action = Action.VERSION;
+					break;
+				default:
+					throw new Exception(format("Invalid action [%s].", args[1]));
+			}
+			request.user = args[2];
 		}
-		request.setCommand(environment.get("SSH_ORIGINAL_COMMAND"));
+//		request.setCommand(environment.get("SSH_ORIGINAL_COMMAND"));
 
 		return request;
 	}
-
-
-}
-
-
-
-/**
- *	Přepravka.
- */
-class Request
-{
-
-	/**
-	 * Uživatel, který posílá požadavek.
-	 */
-	private string user;
-
-	/**
-	 * Originální přžíkaz. O co se pokouší.
-	 */
-	private string command;
-
-
-	/**
-	 * Čteme, zapišujeme, ...
-	 * /
-	private $access;
-
-
-	/**
-	 * Jméno uživatele.
-	 */
-	Request setUser(string value)
-	{
-		this.user = value;
-		return this;
-	}
-
-
-	/**
-	 * Jméno uživatele.
-	 */
-	string getUser()
-	{
-		return this.user;
-	}
-
-
-	Request setCommand(string value)
-	{
-		this.command = value;
-		return this;
-	}
-
-
-
-	string getCommand()
-	{
-		return this.command;
-	}
-	
-	
-	string toString()
-	{
-		return format("user:[%s] - cmd:[%s]", this.user, this.command);
-	}
-
-
-/*
-	public function setAccess($value)
-	{
-		$this->access = $value;
-		return $this;
-	}
-
-
-
-	public function getAccess()
-	{
-		return $this->access;
-	}
-
 */
 
 }
+/*
+unittest {
+	Router r = new Router();
+	Request req;
+	
+	req = r.createRequest(["build/stasi"]);
+	writeln("te pic");
+	// assert(null, req.getUser());
+}
+
+*/
 

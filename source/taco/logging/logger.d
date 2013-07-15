@@ -192,7 +192,7 @@ class Logger : ILogger
 
 
 	/**
-	 * Odpěratelé logů s polu s loku.
+	 * Odpěratelé logů a filtr v jednom objektu.
 	 */
 	private Pair[] listener;
 
@@ -425,7 +425,7 @@ abstract class AbstractWriter : IWriter
 		string s = this.formating;
 		s = replace(s, regex(r"" ~ this.PLACE_MESSAGE,"g"), message);
 		s = replace(s, regex(r"" ~ this.PLACE_LEVEL,"g"), this.formatLevel(level));
-		s = replace(s, regex(r"" ~ this.PLACE_TYPE, "g"), type);
+		s = replace(s, regex(r"" ~ this.PLACE_TYPE, "g"), std.string.format("%10.10s", type));
 		s = replace(s, regex(r"" ~ this.PLACE_DATETIME, "g"), std.string.format("%-27s", Clock.currTime().toISOExtString()));
 		s ~= this.sepparator;
 		
@@ -471,10 +471,13 @@ abstract class AbstractWriter : IWriter
 class OutputWriter : AbstractWriter
 {
 
+	const DEFAULT_FORMAT = this.PLACE_LEVEL ~ " [" ~ this.PLACE_TYPE ~ "] " ~ this.PLACE_MESSAGE;
+
+
 	/**
 	 * Definice podmínky.
 	 */
-	this(string formating = this.PLACE_MESSAGE, string sepparator = "\n")
+	this(string formating = this.DEFAULT_FORMAT, string sepparator = "\n")
 	{
 		super(formating, sepparator);
 	}

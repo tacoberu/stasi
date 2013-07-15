@@ -84,9 +84,10 @@
 		<goal name="test"
 				description="Přeložení na unittesty."
 				>
-			<task type="common.exec">dmd -ofstasi-shell.test \
+			<task type="common.exec">dmd -unittest -ofstasi.test \
 				source/taco/logging/logger.d \
 				source/stasi/authentification.d \
+				source/stasi/request.d \
 				source/stasi/shell/main.d \
 				source/stasi/shell/config.d \
 				source/stasi/shell/routing.d \
@@ -96,9 +97,8 @@
 				source/stasi/shell/commands.d \
 				source/stasi/adapters/git.d \
 				source/stasi/adapters/mercurial.d \
-				-unittest \
 				</task>
-			<task type="common.exec">./stasi-shell.test</task>
+			<task type="common.exec">./stasi.test shell --config build/config.xml</task>
 		</goal>
 
 
@@ -106,9 +106,10 @@
 				description="Překlad projektu."
 				>
 			<task type="common.echo">Spouštíme compile</task>
-			<task type="common.exec">dmd -ofstasi-shell \
+			<task type="common.exec">dmd -O -release -ofstasi \
 				source/taco/logging/logger.d \
 				source/stasi/authentification.d \
+				source/stasi/request.d \
 				source/stasi/shell/main.d \
 				source/stasi/shell/config.d \
 				source/stasi/shell/routing.d \
@@ -127,7 +128,7 @@
 				depends="test, compile, clean"
 				>
 			<task type="common.exec">mkdir -p build</task>
-			<task type="common.exec">mv stasi-shell build/stasi-shell</task>
+			<task type="common.exec">mv stasi build/stasi</task>
 		</goal>
 
 
@@ -141,15 +142,15 @@
 		<goal name="run"
 				description="Spuštění aplikace."
 				>
-			<task type="common.exec">build/stasi-shell</task>
-			<task type="common.exec">env SSH_ORIGINAL_COMMAND="git-upload-pack 'stasi.git'" build/stasi-shell taco</task>
+			<task type="common.exec">build/stasi</task>
+			<task type="common.exec">env SSH_ORIGINAL_COMMAND="git-upload-pack 'stasi.git'" build/stasi taco</task>
 		</goal>
 
 
 		<goal name="deploy"
 				description="Nahrání aplikace na server."
 				>
-			<task type="common.exec">rsync --rsh="ssh -l root" build/stasi-shell root@repo.c2d.cz:/home/cia/bin</task>
+			<task type="common.exec">rsync --rsh="ssh -l root" build/stasi root@mozek.darkmay.cz:/home/repo/bin</task>
 		</goal>
 
 

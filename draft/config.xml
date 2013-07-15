@@ -7,7 +7,7 @@
 	<!--
 		Nastavení serveru.
 		-->
-	<s:globals>
+	<s:setting>
 		<!--
 			Kde budou umístěny repozitáře.
 			-->
@@ -35,7 +35,7 @@
 			<s:group ref="admins" />
 		</s:init-repo>
 
-	</s:globals>
+	</s:setting>
 
 
 
