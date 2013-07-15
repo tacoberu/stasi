@@ -135,7 +135,7 @@ class Dispatcher
 		foreach (r; this.routers) {
 			if (r.match(request)) {
 				this.logger.trace(format("route.class: %s", r.className), "route");
-				action = r.getAction(this.model);
+				action = r.getAction(request, this.model);
 				break;
 			}
 		}

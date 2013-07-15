@@ -71,6 +71,7 @@ int main(string[] args)
 		//Request request = (new Router())
 				//.createRequest(args);
 		int ret = (new Dispatcher(config, new ModelBuilder(config, logger)))
+				.addRoute(new stasi.routing.Router())
 				.addRoute(new git.Router())
 				.addRoute(new mercurial.Router())
 				.logger(logger)

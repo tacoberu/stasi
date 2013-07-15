@@ -87,3 +87,40 @@ class ExecResponse : IResponse
 
 }
 
+
+
+/**
+ *	Výpis nějakého textu na stdout.
+ */
+class EchoResponse : IResponse
+{
+
+
+	/**
+	 * Obsah výstupu.
+	 */
+	string content;
+
+
+
+	/**
+	 *	Poslání na výstup.
+	 */
+	int fetch()
+	{
+		if (this.content) {
+			std.stdio.write(this.content);
+		}
+		return 0;
+	}
+
+
+
+	string toString()
+	{
+		return this.content;
+	}
+
+
+}
+

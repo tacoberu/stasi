@@ -42,7 +42,7 @@ interface IRoute
 	/**
 	 * Jaký příkaz bude zpracvovávat tento request?
 	 */
-	ICommand getAction(ModelBuilder model);
+	ICommand getAction(Request request, ModelBuilder model);
 
 
 	/**
@@ -55,10 +55,58 @@ interface IRoute
 
 
 /**
- *	Mapování GET na request.
+ *	Nějaké ty základní akce.
  */
-class Router
+class Router : IRoute
 {
+
+
+	/**
+	 * Rozhoduje, zda se jedná o speciální příkazy stasi.
+	 */
+	bool match(Request request)
+	{
+		if (request.action) {
+			switch (request.action) {
+				case Action.VERIFY_CONFIG:
+				case Action.AUTH:
+				case Action.VERSION:
+					return true;
+				default:
+					return false;
+			}
+		}
+		return false;
+	}
+
+
+
+	/**
+	 * Jaký příkaz bude zpracvovávat tento request?
+	 */
+	ICommand getAction(Request request, ModelBuilder model)
+	{
+		switch (request.action) {
+			case Action.VERIFY_CONFIG:
+				return new VerifyConfigCommand(model);
+			case Action.AUTH:
+				return new AuthCommand(model);
+			case Action.VERSION:
+				return new VersionCommand(model);
+			default:
+				return null;
+		}
+	}
+
+
+
+	@property string className()
+	{
+		return this.classinfo.name;
+	}
+
+
+
 
 	/**
 	 * Vytvoření instance requestu.
@@ -90,15 +138,14 @@ class Router
 */
 
 }
-/*
+
 unittest {
 	Router r = new Router();
-	Request req;
-	
-	req = r.createRequest(["build/stasi"]);
-	writeln("te pic");
-	// assert(null, req.getUser());
+	string[string] env;
+	Request req = new Request(["stasi", "auth", "--user", "fean"], env);
+	//Request req = (((new Request()).user = "fean").action = Action.AUTH);
+	assert(r.match(req) == true);
 }
 
-*/
+
 

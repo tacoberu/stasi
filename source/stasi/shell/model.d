@@ -32,6 +32,9 @@ import std.string;
 class ModelBuilder
 {
 
+	const VERSION = "0.0.1";
+	
+	
 	/**
 	 * Nastavení aplikace, práv, uživatelů, repozitářů.
 	 */

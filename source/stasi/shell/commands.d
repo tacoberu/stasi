@@ -21,7 +21,6 @@ import taco.logging;
 
 
 import stasi.request;
-import stasi.authentification;
 import stasi.model;
 import stasi.routing;
 import stasi.responses;
@@ -29,7 +28,7 @@ import stasi.authentification;
 
 
 /**
- *	Bázová třída, vracející formát json.
+ *	Rozhraní příkazu.
  */
 interface ICommand
 {
@@ -168,6 +167,198 @@ class OriginalCommand : AbstractCommand
 			return response2;
 		}
 		throw new AccessDeniedException("Access Denied for [{request.getUser()}]. User cannot sign-in.");
+	}
+
+
+
+}
+
+
+
+
+
+/**
+ *	Vypíše verzi aplikace.
+ */
+class VersionCommand : AbstractCommand
+{
+
+	private ModelBuilder model;
+
+
+	/**
+	 *	Vytvoření objektu na základě parametrů z getu.
+	 */
+	this(ModelBuilder model)
+	{
+		this.model = model;
+	}
+
+
+
+	@property string className()
+	{
+		return this.classinfo.name;
+	}
+
+
+
+	/**
+	 *	Obálka na data.
+	 */
+	IResponse createResponse(Request request)
+	{
+		return new EchoResponse();
+	}
+
+
+
+	/**
+	 * @return Model
+	 */
+	ModelBuilder getModel()
+	{
+		return this.model;
+	}
+
+
+
+	/**
+	 *	Vytvoření odpovědi. Předpokládáme jen náhled.
+	 */
+	IResponse fetch(Request request, IResponse response)
+	{
+		EchoResponse response2 = cast(EchoResponse) response;
+		response2.content = this.model.VERSION ~ "\n";
+		return response2;
+	}
+
+
+
+}
+
+
+
+
+
+/**
+ *	Zkontroluje, zda je config v pořádku.
+ */
+class VerifyConfigCommand : AbstractCommand
+{
+
+	private ModelBuilder model;
+
+
+	/**
+	 *	Vytvoření objektu na základě parametrů z getu.
+	 */
+	this(ModelBuilder model)
+	{
+		this.model = model;
+	}
+
+
+
+	@property string className()
+	{
+		return this.classinfo.name;
+	}
+
+
+
+	/**
+	 *	Obálka na data.
+	 */
+	IResponse createResponse(Request request)
+	{
+		return new EchoResponse();
+	}
+
+
+
+	/**
+	 * @return Model
+	 */
+	ModelBuilder getModel()
+	{
+		return this.model;
+	}
+
+
+
+	/**
+	 *	Vytvoření odpovědi. Předpokládáme jen náhled.
+	 */
+	IResponse fetch(Request request, IResponse response)
+	{
+		EchoResponse response2 = cast(EchoResponse) response;
+		response2.content = "0.0.1";
+		return response2;
+	}
+
+
+
+}
+
+
+
+
+
+/**
+ *	Ověří, zda má uživatel daná oprávnění do daného repozitáře.
+ */
+class AuthCommand : AbstractCommand
+{
+
+	private ModelBuilder model;
+
+
+	/**
+	 *	Vytvoření objektu na základě parametrů z getu.
+	 */
+	this(ModelBuilder model)
+	{
+		this.model = model;
+	}
+
+
+
+	@property string className()
+	{
+		return this.classinfo.name;
+	}
+
+
+
+	/**
+	 *	Obálka na data.
+	 */
+	IResponse createResponse(Request request)
+	{
+		return new EchoResponse();
+	}
+
+
+
+	/**
+	 * @return Model
+	 */
+	ModelBuilder getModel()
+	{
+		return this.model;
+	}
+
+
+
+	/**
+	 *	Vytvoření odpovědi. Předpokládáme jen náhled.
+	 */
+	IResponse fetch(Request request, IResponse response)
+	{
+		EchoResponse response2 = cast(EchoResponse) response;
+		response2.content = "0.0.1";
+		return response2;
 	}
 
 

@@ -82,7 +82,7 @@ class Router : IRoute
 	/**
 	 * Jaký příkaz bude zpracvovávat tento request?
 	 */
-	ICommand getAction(ModelBuilder model)
+	ICommand getAction(Request request, ModelBuilder model)
 	{
 		return new Command(model);
 	}
