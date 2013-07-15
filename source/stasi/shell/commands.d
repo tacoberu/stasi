@@ -295,6 +295,8 @@ class VerifyConfigCommand : AbstractCommand
 		EchoResponse response2 = cast(EchoResponse) response;
 		response2.content = "Verifing config: ";
 		this.model.application.hasRepository("any");
+		response2.content ~= "OK\n";
+		
 		return response2;
 	}
 
