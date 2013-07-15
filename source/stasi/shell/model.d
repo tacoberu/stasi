@@ -240,6 +240,7 @@ class Application
 
 	/**
 	 * Zda se uživatel může skrze shell přihlašovat na server.
+	 * @todo
 	 */
 	bool isAllowedSignin(User user)
 	{

@@ -293,7 +293,8 @@ class VerifyConfigCommand : AbstractCommand
 	IResponse fetch(Request request, IResponse response)
 	{
 		EchoResponse response2 = cast(EchoResponse) response;
-		response2.content = "0.0.1";
+		response2.content = "Verifing config: ";
+		this.model.application.hasRepository("any");
 		return response2;
 	}
 
