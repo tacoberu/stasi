@@ -24,6 +24,8 @@ import stasi.commands;
 import stasi.responses;
 import stasi.authentification;
 
+import taco.utils;
+
 import std.stdio;
 import std.array;
 import std.regex;
@@ -143,19 +145,20 @@ class Command : AbstractCommand
 		//	Ověření přístupů.
 		this.assertAccess(request);
 
+		string maskedcommand = this.maskedRepository(
+				request.getCommand());
+				
 		//	Ověření konzistence repozitáře. To znamená, zda
+		//	- neexistuje, vytvořit
 		//	- je bare
 		//	- má nastavené defaultní hooky
 		//	- ...
-//		this.model.application.doNormalizeRepository(this.prepareRepository(request.getCommand()), "git");
+		this.model.application.doNormalizeRepository(this.prepareRepository(request.getCommand()), RepositoryType.GIT);
 
 		//	Výstup
 		ExecResponse response2 = cast(ExecResponse) response;
-		string masked;
-		response2.setCommand(
-			masked = this.maskedRepository(
-				request.getCommand()));
-		this.logger.log(format("masked command [%s] to [%s]", request.getCommand(), masked));
+		response2.setCommand(maskedcommand);
+		this.logger.log(format("masked command [%s] to [%s]", request.getCommand(), maskedcommand), "action");
 		return response2;
 	}
 
@@ -242,8 +245,8 @@ class Command : AbstractCommand
 	 */
 	private string maskedRepository(string cmd)
 	{
-		string prefix = this.model.application.getDefaultRepositoryPath();
-		return replace(cmd, regex(`([\w-]+\s+')([^']+)('.*)`), "$1" ~ prefix ~ "$2$3");
+		Dir prefix = new Dir(this.model.application.getDefaultRepositoryPath());
+		return replace(cmd, regex(`([\w-]+\s+')([^']+)('.*)`), "$1" ~ prefix.path ~ "$2$3");
 	}
 
 }

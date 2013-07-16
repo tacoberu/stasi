@@ -360,7 +360,7 @@ class AuthCommand : AbstractCommand
 	IResponse fetch(Request request, IResponse response)
 	{
 		EchoResponse response2 = cast(EchoResponse) response;
-		response2.content = "0.0.1";
+		response2.content = "~~auth~~";
 		return response2;
 	}
 

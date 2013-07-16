@@ -32,6 +32,7 @@ import git = stasi.adapters.git;
 import mercurial = stasi.adapters.mercurial;
 
 
+
 /**
  * Stasi-shell, invoked from ~/.ssh/authorized_keys
  *
@@ -40,6 +41,7 @@ import mercurial = stasi.adapters.mercurial;
  */
 int main(string[] args)
 {
+//*
 	Config config;
 	Logger logger;
 	Request request;
@@ -54,7 +56,7 @@ int main(string[] args)
 		//config.addParser(new ConfigXmlReader());
 
 		logger = new Logger();
-		logger.addListener(new OutputWriter(), new CommonFilter(Level.TRACE));
+		//logger.addListener(new OutputWriter(), new CommonFilter(Level.TRACE));
 		logger.addListener(
 				new FileWriter(File((config.logsPath ~ "stasi.log"), "a")),
 				new CommonFilter(Level.TRACE)

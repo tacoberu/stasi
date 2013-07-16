@@ -60,6 +60,8 @@ class ExecResponse : IResponse
 	 */
 	int fetch()
 	{
+		//auto s = std.process.execute("dmd", "myapp.d");
+
 		if (this.command) {
 			std.process.system(this.command);
 		}

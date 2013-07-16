@@ -19,6 +19,8 @@ module stasi.config;
 import stasi.request;
 import stasi.model;
 
+import taco.utils;
+
 import std.process;
 import std.xml;
 import std.stdio;
@@ -329,7 +331,10 @@ class ConfigXmlReader : IConfigReader
 			xml.onStartTag[nsstaci ~ "repository"] = (ElementParser xml)
 			{
 				if (("name" in xml.tag.attr) && ("type" in xml.tag.attr)) {
-					config.repositories[xml.tag.attr["name"]] = new Repository(xml.tag.attr["name"], this.parseRepositoryType(xml.tag.attr["type"]));
+					Repository repo = new Repository(xml.tag.attr["name"], this.parseRepositoryType(xml.tag.attr["type"]));
+					repo.path = new Dir(config.defaultRepositoryPath);
+					repo.working = new Dir(config.defaultWorkingPath);
+					config.repositories[xml.tag.attr["name"]] = repo;
 				}
 
 				xml.parse();
@@ -418,7 +423,6 @@ class ConfigXmlReader : IConfigReader
 	}
 
 }
-/*
 unittest {
 		string s = "<?xml version=\"1.0\"?>
 <s:stasi xmlns:s=\"urn:nermal/stasi\"
@@ -463,7 +467,9 @@ unittest {
 
 	ConfigXmlReader parser = new ConfigXmlReader(s);
 	try {
-		Config config = parser.fill(new Config([]));
+		string[string] env;
+		Request req = new Request(["stasi", "verify-config"], env);
+		Config config = parser.fill(new Config(req));
 	}
 	catch (InvalidConfigException e) {
 		assert("Invalid xml format: [Line 16, column 2: end tag name \"s:userx\" differs from start tag name \"s:user\",Line 14, column 2: Element,Line 14, column 2: Content,Line 2, column 1: Element,Line 1, column 1: Document,].", e.msg);
@@ -626,7 +632,9 @@ unittest {
 </s:stasi>";
 
 	ConfigXmlReader parser = new ConfigXmlReader(s);
-    Config config = parser.fill(new Config([]));
+	string[string] env;
+	Request req = new Request(["stasi", "verify-config"], env);
+	Config config = parser.fill(new Config(req));
 
 	assert(config.users.length == 5, "Celkem naimportovaných uživatelů.");
 	assert(config.users["taco"].name == "taco");
@@ -646,10 +654,10 @@ unittest {
 	assert(config.repositories["stasi-admin"].name == "stasi-admin");
 	assert(config.repositories["stasi.git"].name == "stasi.git");
 	assert(config.repositories["testing.git"].name == "testing.git");
+	assert(config.repositories["testing.git"].full == "Development/lab/stasi/testing.git");
 
 	assert(config.defaultRepositoryPath == "Development/lab/stasi");
 	assert(config.defaultWorkingPath == "Development/lab/working");
 }
 
 
-*/
