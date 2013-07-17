@@ -400,20 +400,26 @@ class Application
 	/**
 	 * Vytvoření repozitáře.
 	 * Git křičí, když je vytvořený prázdný repozitář. Proto tam hodíme první komit.
+	 * Také je potřeba nastavit git, aby přijímal příchozí commity.
 	 */
 	private void doCreateRepositoryGit(Repository repository)
 	{
 		string oldcwd = getcwd();
+		
 		string full = this.homePath ~ "/" ~ repository.full;
 		std.process.system(format("mkdir -p %s", full));
+		
 		chdir(full);
+		
 		std.process.system("git init > /dev/null");
 		std.process.system("echo 'empty' > README");
+		std.process.system("echo '[receive]' >> .git/config");
+		std.process.system("echo '	denyCurrentBranch = ignore' >> .git/config");
 		std.process.system("git add README > /dev/null");
 		std.process.system("git commit -m 'Initialize commit.' > /dev/null");
+
 		chdir(oldcwd);
 	}
-
 
 }
 
