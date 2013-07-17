@@ -33,7 +33,7 @@ import std.string;
 class ModelBuilder
 {
 
-	const VERSION = "0.0.3";
+	const VERSION = "0.0.4";
 	
 	
 	/**
@@ -342,7 +342,7 @@ class Application
 					this.doCreateRepositoryGit(repository);
 					break;
 				case RepositoryType.MERCURIAL:
-//					this.doCreateRepositoryMercurial(repository);
+					this.doCreateRepositoryMercurial(repository);
 					break;
 				case RepositoryType.UNKNOW:
 					throw new Exception(format("Unknow type repository and not exists: [%s]", repo));
@@ -351,10 +351,10 @@ class Application
 
 		final switch(type) {
 			case RepositoryType.GIT:
-//				this.doNormalizeAssignHooksGit(full);
+				this.doNormalizeAssignHooksGit(repository);
 				break;
 			case RepositoryType.MERCURIAL:
-//				this.doNormalizeAssignHooksGit(full);
+				this.doNormalizeAssignHooksMercurial(repository);
 				break;
 			case RepositoryType.UNKNOW:
 				throw new Exception(format("Unknow type repository: [%s]", repo));
@@ -364,11 +364,11 @@ class Application
 
 
 	/**
-	 * @param fullrepo
-	 * @return boolean
-	 * /
-	private function doNormalizeAssignHooksGit(fullrepo)
+	 * Zohlední změněné hooky v repozitáři.
+	 */
+	private void doNormalizeAssignHooksGit(Repository repository)
 	{
+		/*
 		//	Post Receive
 		postReceive = fullrepo . '/hooks/post-receive';
 		postReceiveTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-receive');
@@ -390,10 +390,40 @@ class Application
 		if (! file_exists(postUpdate)) {
 			symlink(postUpdateTo, postUpdate);
 		}
+		//*/
 	}
 
 
-	//*/
+
+	/**
+	 * Zohlední změněné hooky v repozitáři.
+	 */
+	private void doNormalizeAssignHooksMercurial(Repository repository)
+	{
+		/*
+		//	Post Receive
+		postReceive = fullrepo . '/hooks/post-receive';
+		postReceiveTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-receive');
+		if (file_exists(postReceive) && (! is_link(postReceive) || readlink(postReceive) != postReceiveTo)) {
+			rename(postReceive, postReceive . '-original');
+		}
+
+		if (! file_exists(postReceive)) {
+			symlink(postReceiveTo, postReceive);
+		}
+
+		//	Post Update
+		postUpdate = fullrepo . '/hooks/post-update';
+		postUpdateTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-update');
+		if (file_exists(postUpdate) && (! is_link(postUpdate) || readlink(postUpdate) != postUpdateTo)) {
+			rename(postUpdate, postUpdate . '-original');
+		}
+
+		if (! file_exists(postUpdate)) {
+			symlink(postUpdateTo, postUpdate);
+		}
+		//*/
+	}
 
 
 
@@ -411,12 +441,42 @@ class Application
 		
 		chdir(full);
 		
+		//	Vytvoření a inicializace.
 		std.process.system("git init > /dev/null");
-		std.process.system("echo 'empty' > README");
 		std.process.system("echo '[receive]' >> .git/config");
 		std.process.system("echo '	denyCurrentBranch = ignore' >> .git/config");
+		
+		//	První commit
+		std.process.system("echo 'empty' > README");
 		std.process.system("git add README > /dev/null");
 		std.process.system("git commit -m 'Initialize commit.' > /dev/null");
+
+		chdir(oldcwd);
+	}
+
+
+
+	/**
+	 * Vytvoření repozitáře.
+	 */
+	private void doCreateRepositoryMercurial(Repository repository)
+	{
+		string oldcwd = getcwd();
+		
+		string full = this.homePath ~ "/" ~ repository.full;
+		std.process.system(format("mkdir -p %s", full));
+		
+		chdir(full);
+		
+		//	Vytvoření a inicializace.
+		std.process.system("hg init > /dev/null");
+		std.process.system("echo '[hooks]' > .hg/hgrc");
+		std.process.system("echo 'changegroup.update = hg update' >> .hg/hgrc");
+		
+		//	První commit
+		std.process.system("echo 'empty' > README");
+		std.process.system("hg add README > /dev/null");
+		std.process.system("hg commit -m 'Initialize commit.' > /dev/null");
 
 		chdir(oldcwd);
 	}

@@ -42,6 +42,9 @@ private const CMD_SERVER_END = "serve --stdio";
 class Router : IRoute
 {
 
+	/**
+	 * Zda se jedná o příkaz mercurialu.
+	 */
 	bool match(Request request)
 	{
 		string cmd = request.getCommand();
@@ -57,23 +60,28 @@ class Router : IRoute
 		}
 		return false;
 	}
-	/*
 	unittest {
+		string[string] env;
 		Router r = new Router();
-		Request req = (new Request()).setUser("fean").setCommand("ls -la");
+		Request req = new Request(["stasi", "shell", "--user fean"], env);
+		req.command = "ls -la";
 		assert(r.match(req) == false);
 	}
 	unittest {
+		string[string] env;
 		Router r = new Router();
-		Request req = (new Request()).setUser("fean").setCommand("hg init projects/test.hg");
+		Request req = new Request(["stasi", "shell", "--user fean"], env);
+		req.command = "hg init projects/test.hg";
 		assert(r.match(req) == true);
 	}
 	unittest {
+		string[string] env;
 		Router r = new Router();
-		Request req = (new Request()).setUser("fean").setCommand("hg -R projects/test.hg serve --stdio");
+		Request req = new Request(["stasi", "shell", "--user fean"], env);
+		req.command = "hg -R projects/test.hg serve --stdio";
 		assert(r.match(req) == true);
 	}
-*/
+
 
 
 	/**
@@ -146,7 +154,7 @@ class Command : AbstractCommand
 		//	- je bare
 		//	- má nastavené defaultní hooky
 		//	- ...
-//		this.model.application.doNormalizeRepository(this.prepareRepository(request.getCommand()), "git");
+		this.model.application.doNormalizeRepository(this.prepareRepository(request.getCommand()), RepositoryType.MERCURIAL);
 
 		//	Výstup
 		ExecResponse response2 = cast(ExecResponse) response;

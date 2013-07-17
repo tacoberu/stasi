@@ -57,28 +57,35 @@ class Router : IRoute
 		}
 		return false;
 	}
-/*
 	unittest {
+		string[string] env;
 		Router r = new Router();
-		Request req = (new Request()).setUser("fean").setCommand("ls -la");
+		Request req = new Request(["stasi", "shell", "--user fean"], env);
+		req.command = "ls -la";
 		assert(r.match(req) == false);
 	}
 	unittest {
+		string[string] env;
 		Router r = new Router();
-		Request req = (new Request()).setUser("fean").setCommand("git-upload-pack 'projects/stasi.git'");
+		Request req = new Request(["stasi", "shell", "--user fean"], env);
+		req.command = "git-upload-pack 'projects/stasi.git'";
 		assert(r.match(req) == true);
 	}
 	unittest {
+		string[string] env;
 		Router r = new Router();
-		Request req = (new Request()).setUser("fean").setCommand("git-upload-archive 'projects/stasi.git'");
+		Request req = new Request(["stasi", "shell", "--user fean"], env);
+		req.command = "git-upload-archive 'projects/stasi.git'";
 		assert(r.match(req) == true);
 	}
 	unittest {
+		string[string] env;
 		Router r = new Router();
-		Request req = (new Request()).setUser("fean").setCommand("git-receive-pack 'projects/stasi.git'");
+		Request req = new Request(["stasi", "shell", "--user fean"], env);
+		req.command = "git-receive-pack 'projects/stasi.git'";
 		assert(r.match(req) == true);
 	}
-*/
+
 
 
 	/**
