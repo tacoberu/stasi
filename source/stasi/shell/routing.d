@@ -42,7 +42,7 @@ interface IRoute
 	/**
 	 * Jaký příkaz bude zpracvovávat tento request?
 	 */
-	ICommand getAction(Request request, ModelBuilder model);
+	ICommand getAction(Request request, IModelBuilder model);
 
 
 	/**
@@ -84,15 +84,15 @@ class Router : IRoute
 	/**
 	 * Jaký příkaz bude zpracvovávat tento request?
 	 */
-	ICommand getAction(Request request, ModelBuilder model)
+	ICommand getAction(Request request, IModelBuilder model)
 	{
 		switch (request.action) {
 			case Action.VERIFY_CONFIG:
-				return new VerifyConfigCommand(model);
+				return new VerifyConfigCommand(cast(Application)model.application);
 			case Action.AUTH:
-				return new AuthCommand(model);
+				return new AuthCommand(cast(Application)model.application);
 			case Action.VERSION:
-				return new VersionCommand(model);
+				return new VersionCommand(cast(Application)model.application);
 			default:
 				return null;
 		}
@@ -106,39 +106,7 @@ class Router : IRoute
 	}
 
 
-
-
-	/**
-	 * Vytvoření instance requestu.
-	 * @param array args Seznam parametrů s CLI.
-	 * /
-	Request createRequest(string[] args)
-	{
-		Request request = new Request();
-		if (args.length > 2) {
-			switch (args[1]) {
-				case "shell":
-					request.action = Action.SHELL;
-					break;
-				case "verify-config":
-					request.action = Action.VERIFY_CONFIG;
-					break;
-				case "version":
-					request.action = Action.VERSION;
-					break;
-				default:
-					throw new Exception(format("Invalid action [%s].", args[1]));
-			}
-			request.user = args[2];
-		}
-//		request.setCommand(environment.get("SSH_ORIGINAL_COMMAND"));
-
-		return request;
-	}
-*/
-
 }
-
 unittest {
 	Router r = new Router();
 	string[string] env;

@@ -27,15 +27,60 @@ import std.file;
 import std.string;
 
 
+
+
+interface IModel
+{
+
+
+	/**
+	 * Zda se uživatel může skrze shell přihlašovat na server.
+	 * @todo
+	 */
+	bool isAllowedSignin(User user);
+
+
+	/**
+	 * Zda uživatel může přistupovat k repozitáři.
+	 */
+	bool isAllowed(User user, Repository repository, Permission perm);
+
+
+	/**
+	 * Získání repozitáře podle jména.
+	 */
+	Repository getRepositoryByName(string name);
+
+
+	/**
+	 * Existence repozitáře.
+	 */
+	bool hasRepository(string name);
+
+
+}
+
+
+
+interface IModelBuilder
+{
+
+	/**
+	 * Getted or Created Application
+	 */
+	@property Application application();
+
+
+}
+
+
+
 /**
  *	Továrna na modely.
  */
-class ModelBuilder
+class ModelBuilder : IModelBuilder 
 {
 
-	const VERSION = "0.0.4";
-	
-	
 	/**
 	 * Nastavení aplikace, práv, uživatelů, repozitářů.
 	 */
@@ -89,11 +134,11 @@ class ModelBuilder
 		IConfigReader reader = new ConfigXmlReader(s);
 		this.config = reader.fill(this.config);
 
-		Application app = (new Application())
-			.setLogger(this.logger)
-			.setHomePath(this.config.homePath)
-			.setDefaultRepositoryPath(this.config.defaultRepositoryPath)
-			.setDefaultWorkingPath(this.config.defaultWorkingPath);
+		Application app = new Application();
+		app.logger = this.logger;
+		app.homePath = this.config.homePath;
+		app.defaultRepositoryPath = this.config.defaultRepositoryPath;
+		app.defaultWorkingPath = this.config.defaultWorkingPath;
 
 		this.logger.log(format("home path: [%s]", this.config.homePath), "configuration");
 		this.logger.log(format("default repository path path: [%s]", this.config.defaultRepositoryPath), "configuration");
@@ -121,8 +166,11 @@ class ModelBuilder
 /**
  *	Kořenový model aplikace.
  */
-class Application
+class Application : IModel
 {
+
+	const VERSION = "0.0.4";
+
 
 	/**
 	 * Seznam oprávnění.
@@ -133,19 +181,19 @@ class Application
 	/**
 	 * Cesta k defaultnímu umístění repozitářů.
 	 */
-	private string repositoryPath;
+	Dir defaultRepositoryPath;
 	
 	
 	/**
 	 * Cesta k defaultnímu umístění pískoviště repozitářů.
 	 */
-	private string defaultWorkingPath;
+	Dir defaultWorkingPath;
 	
 
 	/**
 	 * Cesta k domácímu adresáři.
 	 */
-	private string homePath;
+	Dir homePath;
 
 
 	/**
@@ -163,79 +211,52 @@ class Application
 	/**
 	 * Loggovadlo.
 	 */
-	private Logger logger;
+	private ILogger _logger;
 
 
 	/**
 	 * Přiřazení logovadla.
 	 */
-	Application setLogger(Logger m)
+	@property Application logger(Logger m)
 	{
-		this.logger = m;
+		this._logger = m;
 		return this;
 	}
+
+
+
+	/**
+	 * Získání loggeru, nového, nebo oposledně vytvořeneého.
+	 */
+	@property ILogger logger()
+	{
+		if (! this._logger) {
+			this._logger = this.createLogger();
+		}
+		return this._logger;
+	}
+
+
+
+	/**
+	 * Vytvoření nového loggeru.
+	 */
+	ILogger createLogger()
+	{
+		return new Logger();
+	}
+
 
 
 	/**
 	 * Cesta k úložišti repozitářů.
 	 */
-	Application setHomePath(string path)
+	Application setHomePath(Dir path)
 	{
 		this.homePath = path;
 		return this;
 	}
 
-
-	/**
-	 * Cesta k defaultnímu úložišti repozitářů.
-	 */
-	Application setDefaultRepositoryPath(string path)
-	{
-		this.repositoryPath = path;
-		return this;
-	}
-
-
-
-	/**
-	 * Cesta k úložišti repozitářů.
-	 */
-	string getDefaultRepositoryPath()
-	{
-		return this.repositoryPath;
-	}
-	/*
-	unittest {
-		Application app = (new Application()).setDefaultRepositoryPath("repos");
-		assert("repos", app.getDefaultRepositoryPath());
-	}
-	* */
-
-
-
-	/**
-	 * Cesta k defaultnímu úložišti repozitářů.
-	 */
-	Application setDefaultWorkingPath(string path)
-	{
-		this.defaultWorkingPath = path;
-		return this;
-	}
-
-
-
-	/**
-	 * Cesta k úložišti repozitářů.
-	 */
-	string getDefaultWorkingPath()
-	{
-		return this.defaultWorkingPath;
-	}
-	unittest {
-		Application app = (new Application()).setDefaultWorkingPath("woriks");
-		assert("woriks", app.getDefaultWorkingPath());
-	}
-	
 
 
 	/**
@@ -271,10 +292,15 @@ class Application
 				}
 			}
 		}
+
 		this.logger.log(format("not match(%s, %s, %d)", user.name, repository.name, perm), "auth");
 		return false;
 	}
-	/*
+	//	Zádní uživatele, zádné repozitáře.
+	unittest {
+		Application app = new Application();
+		assert(false == app.isAllowed(new User("foo"), new Repository("pokus.git", RepositoryType.GIT), Permission.READ));
+	}
 	unittest {
 		Application app = new Application();
 		User user = new User("foo");
@@ -282,15 +308,14 @@ class Application
 		user.repositories["druhej.hg"] = new AccessRepository("druhej.hg", RepositoryType.MERCURIAL, Permission.READ | Permission.WRITE | Permission.REMOVE);
 		app.users ~= user;
 		assert(2 == user.repositories.length);
-		assert(true == app.isAllowed(new User("foo"), new Repository("pokus.git", RepositoryType.GIT), Permission.READ));
-		assert(false == app.isAllowed(new User("foo"), new Repository("pokus.git", RepositoryType.GIT), Permission.WRITE));
-		assert(app.isAllowed(new User("foo"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.WRITE));
-		assert(app.isAllowed(new User("foo"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.READ));
-		assert(! app.isAllowed(new User("foo"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.INIT));
-		assert(! app.isAllowed(new User("too"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.WRITE));
-		assert(! app.isAllowed(new User("too"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.READ));
+		//assert(true == app.isAllowed(new User("foo"), new Repository("pokus.git", RepositoryType.GIT), Permission.READ));
+		//assert(false == app.isAllowed(new User("foo"), new Repository("pokus.git", RepositoryType.GIT), Permission.WRITE));
+		//assert(app.isAllowed(new User("foo"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.WRITE));
+		//assert(app.isAllowed(new User("foo"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.READ));
+		//assert(! app.isAllowed(new User("foo"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.INIT));
+		//assert(! app.isAllowed(new User("too"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.WRITE));
+		//assert(! app.isAllowed(new User("too"), new Repository("druhej.hg", RepositoryType.MERCURIAL), Permission.READ));
 	}
-	*/
 
 
 
@@ -333,7 +358,7 @@ class Application
 	void doNormalizeRepository(string repo, RepositoryType type)
 	{
 		Repository repository = this.getRepositoryByName(repo);
-		string full = this.homePath ~ "/" ~ repository.full;
+		string full = this.homePath.path ~ repository.full;
 		
 		//	Existence souboru
 		if (! std.file.exists(full)) {
@@ -436,7 +461,7 @@ class Application
 	{
 		string oldcwd = getcwd();
 		
-		string full = this.homePath ~ "/" ~ repository.full;
+		string full = this.homePath.path ~ repository.full;
 		std.process.system(format("mkdir -p %s", full));
 		
 		chdir(full);
@@ -463,7 +488,7 @@ class Application
 	{
 		string oldcwd = getcwd();
 		
-		string full = this.homePath ~ "/" ~ repository.full;
+		string full = this.homePath.path ~ repository.full;
 		std.process.system(format("mkdir -p %s", full));
 		
 		chdir(full);
@@ -642,7 +667,8 @@ unittest {
 
 
 /**
- * Přístup k repozitáři.
+ * Přístup k repozitáři. Komu se tento objekt přiřadí, ten má taková prava 
+ * k takovému repozitáři.
  */
 class AccessRepository
 {
@@ -652,6 +678,11 @@ class AccessRepository
 
 	Permission permission;
 
+	/**
+	 * @param string name Jméno repozitáře, například: stasi.git
+	 * @param type Typ repozitáře, například: git
+	 * @param perm Povolené přístupy. Čtení, nebo i zápis.
+	 */
 	this(string name, RepositoryType type, Permission perm)
 	{
 		this.name = name;

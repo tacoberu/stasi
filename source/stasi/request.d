@@ -22,6 +22,8 @@ import std.stdio;
 import std.process;
 import std.string;
 
+import taco.utils;
+
 
 
 enum Action {
@@ -41,33 +43,33 @@ class Request
 {
 
 	/**
-	 * Možné akce.
+	 * Akce programu - shell, auth, verify-config
 	 */
-	Action action;
+	private Action _action;
 
 
 	/**
 	 * Uživatel, který posílá požadavek.
 	 */
-	string user;
+	private string _user;
 
 
 	/**
 	 * Umístění domovského adresáře.
 	 */
-	string homePath;
+	private Dir _homePath;
 
 
 	/**
-	 * Originální přžíkaz. O co se pokouší.
+	 * Originální příkaz. O co se pokouší.
 	 */
-	string command;
+	private string _command = "";
 
 
 	/**
 	 * Soubor, ze kterého načítáme konfiguraci.
 	 */
-	string configFile;
+	private string _configFile;
 
 
 	/**
@@ -81,6 +83,63 @@ class Request
 
 
 
+	/**
+	 * Název akce.
+	 */
+	@property Action action()
+	{
+		return this._action;
+	}
+
+
+
+	/**
+	 * Jméno uživatele.
+	 */
+	@property string user()
+	{
+		return this._user;
+	}
+
+
+
+	@property Dir homePath()
+	{
+		return this._homePath;
+	}
+
+	
+	
+	@property string command()
+	{
+		return this._command;
+	}
+
+	
+	
+	@property string configFile()
+	{
+		return this._configFile;
+	}
+
+	
+	
+	string toString()
+	{
+		return format("request: action=[%s], user=[%s], command=[%s], home=[%s], config=[%s]", 
+				formatAction(this.action),
+				this.user,
+				this.command,
+				this.homePath,
+				this.configFile
+				);
+	}
+
+
+
+	/**
+	 * Argumenty z příkazového řádku.
+	 */
 	private void parseArgs(string[] args)
 	{
 		if (args.length < 2) {
@@ -90,16 +149,16 @@ class Request
 		//	Zpracování prvního parametru, kterýžto je akcí.
 		switch (args[1]) {
 			case "shell":
-				this.action = Action.SHELL;
+				this._action = Action.SHELL;
 				break;
 			case "verify-config":
-				this.action = Action.VERIFY_CONFIG;
+				this._action = Action.VERIFY_CONFIG;
 				break;
 			case "version":
-				this.action = Action.VERSION;
+				this._action = Action.VERSION;
 				break;
 			case "auth":
-				this.action = Action.AUTH;
+				this._action = Action.AUTH;
 				break;
 			default:
 				throw new Exception(format("Invalid action [%s].", args[1]));
@@ -121,10 +180,10 @@ class Request
 			else {
 				switch (opt) {
 					case "config":
-						this.configFile = m;
+						this._configFile = m;
 						break;
 					case "user":
-						this.user = m;
+						this._user = m;
 						break;
 					default:
 						throw new Exception(format("Invalid option [%s]", opt));
@@ -136,59 +195,26 @@ class Request
 	
 	
 	
+	/**
+	 * naplnění zajímavých údajů z prostředí.
+	 */
 	private void parseEnv(string[string] env)
 	{
 		if ("SSH_ORIGINAL_COMMAND" in env) {
-			this.command = env["SSH_ORIGINAL_COMMAND"];
+			this._command = env["SSH_ORIGINAL_COMMAND"];
 		}
+		
 		if ("HOME" in env) {
-			this.homePath = env["HOME"];
+			this._homePath = new Dir(env["HOME"]);
+		}
+		else {
+			this._homePath = new Dir("");
 		}
 	}
 
 
 
-	/**
-	 * Název akce.
-	 */
-	Action getAction()
-	{
-		return this.action;
-	}
-
-
-
-	/**
-	 * Jméno uživatele.
-	 */
-	string getUser()
-	{
-		return this.user;
-	}
-
-
-
-	string getCommand()
-	{
-		return this.command;
-	}
-
-	
-	
-	string toString()
-	{
-		return format("request: action=[%s], user=[%s], command=[%s], home=[%s], config=[%s]", 
-				formatAction(this.action),
-				this.user,
-				this.command,
-				this.homePath,
-				this.configFile
-				);
-	}
-
-
-
-	string formatAction(Action action)
+	private string formatAction(Action action)
 	{
 		final switch(action)
 		{
@@ -205,6 +231,7 @@ class Request
 
 
 }
+//	Neplatný request.
 unittest {
 	string[string] env;
 	env["pokus"] = "pokus";
@@ -212,7 +239,30 @@ unittest {
 		Request request = new Request(["stasi"], env);
 	}
 	catch (Exception e) {
-		assert("Action not found.", e.msg);
+		assert("Action not found." == e.msg);
 	}
-	
+}
+//	Prázdné prvky
+unittest {
+	string[string] env;
+	env["pokus"] = "pokus";
+	Request request = new Request(["stasi", "shell"], env);
+	assert(request.action == Action.SHELL);
+	assert(request.command == "");
+	assert(request.configFile == "");
+	assert(request.homePath.path == "");
+	assert(request.user == "");
+}
+// Naplnění všech prvků
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "ls -la";
+	env["pokus"] = "pokus";
+	env["HOME"] = "foo/goo";
+	Request request = new Request(["stasi", "shell", "--config", "./build/sample.xml", "--user", "franta"], env);
+	assert(request.action == Action.SHELL);
+	assert(request.command == "ls -la");
+	assert(request.configFile == "./build/sample.xml");
+	assert(request.homePath.path == "foo/goo/");
+	assert(request.user == "franta");
 }

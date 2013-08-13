@@ -30,7 +30,7 @@ import std.string;
 
 
 /**
- * Neplatný formát configuračního souboru.
+ * Chybný formát konfiguračního souboru.
  */
 class InvalidConfigException : Exception
 {
@@ -63,7 +63,7 @@ class Config
 	/**
 	 * Umístění domovského adresáře.
 	 */
-	string homePath;
+	Dir homePath;
 
 
 	/**
@@ -75,19 +75,19 @@ class Config
 	/**
 	 * Kde se budou defaultně hledat repozitáře.
 	 */
-	string defaultRepositoryPath = "repos";
+	Dir defaultRepositoryPath;
 
-
+	
 	/**
 	 * Kam se budou defaultně checkoutovat repozitáře.
 	 */
-	string defaultWorkingPath = "working";
+	Dir defaultWorkingPath;
 
 
 	/**
 	 * Kam se budou logovat výstupy.
 	 */
-	string logsPath = this.DEFAULT_LOGS_PATH;
+	Dir logsPath;
 
 
 
@@ -109,84 +109,17 @@ class Config
 	 */
 	this (Request request)
 	{
+		this.defaultRepositoryPath = new Dir("repos");
+		this.defaultWorkingPath = new Dir("working");
+		this.logsPath = new Dir(this.DEFAULT_LOGS_PATH);
 		this.homePath = request.homePath;
 		if (request.configFile) {
 			this.configFile = request.configFile;
 		}
 		else {
-			this.configFile = this.homePath ~ "/" ~ this.DEFAULT_CONFIG_FILE;
+			this.configFile = this.homePath.path ~ this.DEFAULT_CONFIG_FILE;
 		}
 	}
-
-
-
-	/**
-	 * Cesta ke kořeni domovského adresáře.
-	 * /
-	Config setHomePath(string m)
-	{
-		//ret = rtrim(ret, '/\\');
-		this.home = m;
-		return this;
-	}
-
-
-
-	/**
-	 * Cesta ke kořeni domovského adresáře.
-	 *
-	 * @return string
-	 * /
-	string getHomePath()
-	{
-		//ret = rtrim(ret, '/\\');
-		return this.home;
-	}
-	unittest {
-		Config c = (new Config(["main", "build", "install"])).setHomePath("/home/stasi");
-		assert(c.getHomePath(), "/home/stasi");
-	}
-
-
-
-	/**
-	 * Z jakého souboru se načítá konfigurace.
-	 * /
-	Config setConfigFile(string m)
-	{
-		//ret = rtrim(ret, '/\\');
-		this.configFile = m;
-		return this;
-	}
-
-
-
-	/**
-	 * Cesta k souboru s nastavení acl.
-	 *
-	 * @return string
-	 * /
-	string getAclFile()
-	{
-		return this.configFile;
-	}
-	unittest {
-		Config c = (new Config(["main", "build", "install"])).setHomePath("/home/stasi");
-		assert(c.getAclFile(), "/home/stasi/.config/stasi/config.xml");
-	}
-
-
-
-	/**
-	 * Cesta ke adresáři, do kterého budeme zapisovat logy.
-	 *
-	 * @return string
-	 * /
-	string getLogsPath()
-	{
-		return this.logsPath;
-	}
-	//*/
 
 }
 
@@ -230,6 +163,8 @@ class ConfigXmlReader : IConfigReader
 			this.name = name;
 		}
 	}
+
+
 
 	/**
 	 * Skupiny si zpracováváme interně.
@@ -290,11 +225,11 @@ class ConfigXmlReader : IConfigReader
 			xml.onStartTag[nsstaci ~ "setting"] = (ElementParser xml)
 			{
 				xml.onEndTag[nsstaci ~ "repo-path"] = (in Element e) {
-					config.defaultRepositoryPath = e.text();
+					config.defaultRepositoryPath = new Dir(e.text());
 				};
 
 				xml.onEndTag[nsstaci ~ "working-path"] = (in Element e) {
-					config.defaultWorkingPath = e.text();
+					config.defaultWorkingPath = new Dir(e.text());
 				};
 
 				xml.parse();
@@ -330,13 +265,27 @@ class ConfigXmlReader : IConfigReader
 
 			xml.onStartTag[nsstaci ~ "repository"] = (ElementParser xml)
 			{
+				Repository repo;
+				
 				if (("name" in xml.tag.attr) && ("type" in xml.tag.attr)) {
-					Repository repo = new Repository(xml.tag.attr["name"], this.parseRepositoryType(xml.tag.attr["type"]));
-					repo.path = new Dir(config.defaultRepositoryPath);
-					repo.working = new Dir(config.defaultWorkingPath);
-					config.repositories[xml.tag.attr["name"]] = repo;
+					repo = new Repository(xml.tag.attr["name"], this.parseRepositoryType(xml.tag.attr["type"]));
+					repo.path = config.defaultRepositoryPath;
+					repo.working = config.defaultWorkingPath;
+				}
+				else {
+					throw new InvalidConfigException("Repository tag without name or type of repository.");
 				}
 
+				xml.onEndTag[nsstaci ~ "repo-path"] = (in Element e) {
+					repo.path = new Dir(e.text());
+				};
+
+				xml.onEndTag[nsstaci ~ "working-path"] = (in Element e) {
+					repo.working = new Dir(e.text());
+				};
+
+				config.repositories[xml.tag.attr["name"]] = repo;
+				
 				xml.parse();
 			};
 
@@ -423,6 +372,7 @@ class ConfigXmlReader : IConfigReader
 	}
 
 }
+//	Neplatný formát xmleka.
 unittest {
 		string s = "<?xml version=\"1.0\"?>
 <s:stasi xmlns:s=\"urn:nermal/stasi\"
@@ -466,8 +416,8 @@ unittest {
 </s:stasi>";
 
 	ConfigXmlReader parser = new ConfigXmlReader(s);
+	string[string] env;
 	try {
-		string[string] env;
 		Request req = new Request(["stasi", "verify-config"], env);
 		Config config = parser.fill(new Config(req));
 	}
@@ -475,14 +425,15 @@ unittest {
 		assert("Invalid xml format: [Line 16, column 2: end tag name \"s:userx\" differs from start tag name \"s:user\",Line 14, column 2: Element,Line 14, column 2: Content,Line 2, column 1: Element,Line 1, column 1: Document,].", e.msg);
 	}
 }
+//	Kompletní nastavení všech možností
 unittest {
 		string s = "<?xml version=\"1.0\"?>
 <s:stasi xmlns:s=\"urn:nermal/stasi\"
 			xmlns:c=\"urn:nermal/contact\">
 
 	<s:setting>
-		<s:repo-path>Development/lab/stasi</s:repo-path>
-		<s:working-path>Development/lab/working</s:working-path>
+		<s:repo-path>std/repos/</s:repo-path>
+		<s:working-path>std/working</s:working-path>
 	</s:setting>		
 
 
@@ -538,7 +489,7 @@ unittest {
 		Definice repositářů, jejiích umístění, jejich speciální konfigurace.
 		-->
 	<s:repository name=\"stasi-admin\" type=\"git\">
-		<s:repo-path>repository/stasi-admin</s:repo-path>
+		<s:repo-path>spec/stasi-admin</s:repo-path>
 		<s:working-path>.config/stasi</s:working-path>
 	</s:repository>
 	<s:repository name=\"stasi.git\" type=\"git\">
@@ -652,12 +603,17 @@ unittest {
 
 	assert(config.repositories.length == 6);
 	assert(config.repositories["stasi-admin"].name == "stasi-admin");
+	assert(config.repositories["stasi-admin"].path.path == "spec/stasi-admin/");
+	assert(config.repositories["stasi-admin"].working.path == ".config/stasi/");
+
 	assert(config.repositories["stasi.git"].name == "stasi.git");
+	assert(config.repositories["stasi.git"].path.path == "std/repos/");
+	assert(config.repositories["stasi.git"].working.path == "Development/lab/working/");
+
 	assert(config.repositories["testing.git"].name == "testing.git");
-	assert(config.repositories["testing.git"].full == "Development/lab/stasi/testing.git");
+	assert(config.repositories["testing.git"].full == "std/repos/testing.git");
+	assert(config.repositories["testing.git"].working.path == "std/working/");
 
-	assert(config.defaultRepositoryPath == "Development/lab/stasi");
-	assert(config.defaultWorkingPath == "Development/lab/working");
+	assert(config.defaultRepositoryPath.path == "std/repos/");
+	assert(config.defaultWorkingPath.path == "std/working/");
 }
-
-

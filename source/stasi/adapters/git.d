@@ -44,8 +44,11 @@ class Router : IRoute
 	 */
 	bool match(Request request)
 	{
-		if (request.getCommand()) {
-			auto a = split(request.getCommand());
+		if (request.command) {
+			auto a = split(request.command);
+			if (! a.length) {
+				return false;
+			}
 			switch (a[0]) {
 				case "git-upload-pack":
 				case "git-upload-archive":
@@ -57,43 +60,15 @@ class Router : IRoute
 		}
 		return false;
 	}
-	unittest {
-		string[string] env;
-		Router r = new Router();
-		Request req = new Request(["stasi", "shell", "--user fean"], env);
-		req.command = "ls -la";
-		assert(r.match(req) == false);
-	}
-	unittest {
-		string[string] env;
-		Router r = new Router();
-		Request req = new Request(["stasi", "shell", "--user fean"], env);
-		req.command = "git-upload-pack 'projects/stasi.git'";
-		assert(r.match(req) == true);
-	}
-	unittest {
-		string[string] env;
-		Router r = new Router();
-		Request req = new Request(["stasi", "shell", "--user fean"], env);
-		req.command = "git-upload-archive 'projects/stasi.git'";
-		assert(r.match(req) == true);
-	}
-	unittest {
-		string[string] env;
-		Router r = new Router();
-		Request req = new Request(["stasi", "shell", "--user fean"], env);
-		req.command = "git-receive-pack 'projects/stasi.git'";
-		assert(r.match(req) == true);
-	}
 
 
 
 	/**
 	 * Jaký příkaz bude zpracvovávat tento request?
 	 */
-	ICommand getAction(Request request, ModelBuilder model)
+	ICommand getAction(Request request, IModelBuilder model)
 	{
-		return new Command(model);
+		return new Command(model.application);
 	}
 
 
@@ -105,6 +80,65 @@ class Router : IRoute
 
 
 }
+/**
+ * Prázdný příkaz.
+ */
+unittest {
+	string[string] env;
+	Router r = new Router();
+	Request req = new Request(["stasi", "shell", "--user fean"], env);
+	assert(r.match(req) == false);
+}
+/**
+ * Mě se netýkající příkaz.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "ls";
+	Router r = new Router();
+	Request req = new Request(["stasi", "shell", "--user fean"], env);
+	assert(r.match(req) == false);
+}
+/**
+ * Mě se netýkající příkaz.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "ls -la";
+	Router r = new Router();
+	Request req = new Request(["stasi", "shell", "--user fean"], env);
+	assert(r.match(req) == false);
+}
+/**
+ * Příkaz pro zápis do repozitáře.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "git-upload-pack 'projects/stasi.git'";
+	Router r = new Router();
+	Request req = new Request(["stasi", "shell", "--user fean"], env);
+	assert(r.match(req) == true);
+}
+/**
+ * Příkaz pro zápis do repozitáře.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "git-upload-archive 'projects/stasi.git'";
+	Router r = new Router();
+	Request req = new Request(["stasi", "shell", "--user fean"], env);
+	assert(r.match(req) == true);
+}
+/**
+ * Příkaz pro čtení z repozitáře.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "git-receive-pack 'projects/stasi.git'";
+	Router r = new Router();
+	Request req = new Request(["stasi", "shell", "--user fean"], env);
+	assert(r.match(req) == true);
+}
 
 
 
@@ -114,13 +148,13 @@ class Router : IRoute
 class Command : AbstractCommand
 {
 
-	private ModelBuilder model;
+	private Application model;
 
 
 	/**
 	 *	Vytvoření objektu na základě parametrů z getu.
 	 */
-	this(ModelBuilder model)
+	this(Application model)
 	{
 		this.model = model;
 	}
@@ -149,54 +183,55 @@ class Command : AbstractCommand
 	 */
 	IResponse fetch(Request request, IResponse response)
 	{
-		//	Ověření přístupů.
-		this.assertAccess(request);
+		string repoName = this.prepareRepository(request.command);
+		Repository repo = this.model.getRepositoryByName(repoName);
+		if (! repo) {
+			throw new RepositoryNotFoundException(format("Repository: [%s] not defined.", repoName));
+		}
 
-		string maskedcommand = this.maskedRepository(
-				request.getCommand());
-				
+		string maskedCommand = this.maskedRepository(repo, request.command);
+		//writefln("maskedCommand: %s", maskedCommand);
+
+		//	Ověření přístupů.
+		this.assertAccess(request, repo, maskedCommand);
+
+		//return response;
 		//	Ověření konzistence repozitáře. To znamená, zda
 		//	- neexistuje, vytvořit
 		//	- je bare
 		//	- má nastavené defaultní hooky
 		//	- ...
-		this.model.application.doNormalizeRepository(this.prepareRepository(request.getCommand()), RepositoryType.GIT);
+		/*
+		this.model.application.doNormalizeRepository(this.prepareRepository(request.command), RepositoryType.GIT);
+		*/
 
 		//	Výstup
 		ExecResponse response2 = cast(ExecResponse) response;
-		response2.setCommand(maskedcommand);
-		this.logger.log(format("masked command [%s] to [%s]", request.getCommand(), maskedcommand), "action");
+		response2.setCommand(maskedCommand);
+		this.logger.log(format("masked command [%s] to [%s]", request.command, maskedCommand), "action");
 		return response2;
 	}
+
 
 
 	/**
 	 * Ověření oprávnění.
 	 */
-	private void assertAccess(Request request)
+	private void assertAccess(Request request, Repository repo, string cmd)
 	{
-		string original = this.prepareRepository(request.getCommand());
-		string cmd = this.maskedRepository(request.getCommand());
-		//Repository repo = this.makeRepository(cmd);
-		Repository repo = new Repository(original, RepositoryType.GIT);
 		Permission perm = this.makePermission(cmd);
-
-		if (! this.model.application.hasRepository(original)) {
-			throw new RepositoryNotFoundException(format("Repository: [%s] not defined.", original));
-		}
-
-		if (! this.model.application.isAllowed(new User(request.getUser()), repo, perm)) {
+		if (! this.model.isAllowed(new User(request.user), repo, perm)) {
 			final switch (perm) {
 				case Permission.INIT:
-					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot creating git repository: [%s].", request.getUser(), original));
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot creating git repository: [%s].", request.user, repo.name));
 				case Permission.READ:
-					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot read from git repository: [%s].", request.getUser(), original));
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot read from git repository: [%s].", request.user, repo.name));
 				case Permission.WRITE:
-					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot write to git repository: [%s].", request.getUser(), original));
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot write to git repository: [%s].", request.user, repo.name));
 				case Permission.REMOVE:
-					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot remove in git repository: [%s].", request.getUser(), original));
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot remove in git repository: [%s].", request.user, repo.name));
 				case Permission.DENY:
-					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot access to git repository: [%s].", request.getUser(), original));
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot access to git repository: [%s].", request.user, repo.name));
 			}
 		}
 	}
@@ -250,15 +285,79 @@ class Command : AbstractCommand
 	/**
 	 * Nahradit jméno repozitáře v commandu.
 	 */
-	private string maskedRepository(string cmd)
+	private string maskedRepository(Repository repository, string cmd)
 	{
-		Dir prefix = new Dir(this.model.application.getDefaultRepositoryPath());
-		return replace(cmd, regex(`([\w-]+\s+')([^']+)('.*)`), "$1" ~ prefix.path ~ "$2$3");
+		return replace(cmd, regex(`([\w-]+\s+')([^']+)('.*)`), "$1" ~ repository.path.path ~ "$2$3");
 	}
 
 }
+/**
+ * Scénář, kdy repozitář neexistuje.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "git-receive-pack 'stasi.git'";
+	Request request = new Request(["stasi", "shell", "--config", "./build/sample.xml", "--user", "franta"], env);
+	Application model = new Application();
+	Command cmd = new Command(model);
+	IResponse response = cmd.createResponse(request);
+	assert(cmd.className == "stasi.adapters.git.Command");
+	try {
+		response = cmd.fetch(request, response);
+	}
+	catch (RepositoryNotFoundException e) {
+		assert("Repository: [stasi.git] not defined." == e.msg);
+	}
+}
+/**
+ * Scénář, kdy uživatel neexistuje.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "git-receive-pack 'stasi.git'";
+	Request request = new Request(["stasi", "shell", "--config", "./build/sample.xml", "--user", "franta"], env);
+	Application model = new Application();
+	Repository repo = new Repository("stasi.git", RepositoryType.GIT);
+	repo.path = new Dir("foo/doo");
+	model.repositories ~= repo;
+	
+	Command cmd = new Command(model);
+	IResponse response = cmd.createResponse(request);
+	try {
+		response = cmd.fetch(request, response);
+	}
+	catch (AccessDeniedException e) {
+		assert("Access Denied for [franta]. User cannot write to git repository: [stasi.git]." == e.msg);
+	}
+}
+/**
+ * Scénář úspěšného příštupu k repozitáři.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "git-receive-pack 'stasi.git'";
+	Request request = new Request(["stasi.git", "shell", "--config", "./build/sample.xml", "--user", "franta"], env);
+	Application model = new Application();
 
+	//	Repozitář
+	Repository repo = new Repository("stasi.git", RepositoryType.GIT);
+	repo.path = new Dir("foo/doo");
+	model.repositories ~= repo;
 
-
-
-
+	//	Uživatel
+	User user = new User("franta");
+	model.users ~= user;
+	
+	//	ACL
+	Permission perm = Permission.DENY | Permission.READ | Permission.WRITE;
+	user.repositories[repo.name] = new AccessRepository(
+			repo.name,
+			repo.type, 
+			perm);
+	
+	//	Příkaz
+	Command cmd = new Command(model);
+	IResponse response = cmd.createResponse(request);
+	response = cmd.fetch(request, response);
+	assert(response.toString() == "cmd:[git-receive-pack 'foo/doo/stasi.git']");
+}

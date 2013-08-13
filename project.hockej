@@ -145,7 +145,8 @@
 				description="Spuštění aplikace."
 				>
 			<task type="common.exec">build/stasi</task>
-			<task type="common.exec">env SSH_ORIGINAL_COMMAND="git-upload-pack 'stasi.git'" build/stasi taco</task>
+			<!-- version -->
+			<task type="common.exec">env SSH_ORIGINAL_COMMAND="git-upload-pack 'stasi.git'" build/stasi version --user taco --config build/config.xml</task>
 		</goal>
 
 

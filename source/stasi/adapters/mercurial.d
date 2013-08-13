@@ -24,6 +24,8 @@ import stasi.commands;
 import stasi.responses;
 import stasi.authentification;
 
+import taco.utils;
+
 import std.stdio;
 import std.string;
 
@@ -47,7 +49,7 @@ class Router : IRoute
 	 */
 	bool match(Request request)
 	{
-		string cmd = request.getCommand();
+		string cmd = request.command;
 		if (! cmd) {
 			return false;
 		}
@@ -60,37 +62,17 @@ class Router : IRoute
 		}
 		return false;
 	}
-	unittest {
-		string[string] env;
-		Router r = new Router();
-		Request req = new Request(["stasi", "shell", "--user fean"], env);
-		req.command = "ls -la";
-		assert(r.match(req) == false);
-	}
-	unittest {
-		string[string] env;
-		Router r = new Router();
-		Request req = new Request(["stasi", "shell", "--user fean"], env);
-		req.command = "hg init projects/test.hg";
-		assert(r.match(req) == true);
-	}
-	unittest {
-		string[string] env;
-		Router r = new Router();
-		Request req = new Request(["stasi", "shell", "--user fean"], env);
-		req.command = "hg -R projects/test.hg serve --stdio";
-		assert(r.match(req) == true);
-	}
 
 
 
 	/**
 	 * Jaký příkaz bude zpracvovávat tento request?
 	 */
-	ICommand getAction(Request request, ModelBuilder model)
+	ICommand getAction(Request request, IModelBuilder model)
 	{
-		return new Command(model);
+		return new Command(model.application);
 	}
+
 
 
 	@property string className()
@@ -98,6 +80,45 @@ class Router : IRoute
 		return this.classinfo.name;
 	}
 
+}
+/**
+ * Prázdný příkaz.
+ */
+unittest {
+	string[string] env;
+	Router r = new Router();
+	Request req = new Request(["stasi", "shell", "--user fean"], env);
+	assert(r.match(req) == false);
+}
+/**
+ * Mě se netýkající příkaz.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "ls -la";
+	Router r = new Router();
+	Request req = new Request(["stasi", "shell", "--user fean"], env);
+	assert(r.match(req) == false);
+}
+/**
+ * Příkaz pro vytvoření repozitáře.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "hg init projects/test.hg";
+	Router r = new Router();
+	Request req = new Request(["stasi", "shell", "--user fean"], env);
+	assert(r.match(req) == true);
+}
+/**
+ * Příkaz pro komunikaci s repozitářem.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "hg -R projects/test.hg serve --stdio";
+	Router r = new Router();
+	Request req = new Request(["stasi", "shell", "--user fean"], env);
+	assert(r.match(req) == true);
 }
 
 
@@ -109,16 +130,17 @@ class Router : IRoute
 class Command : AbstractCommand
 {
 
-	private ModelBuilder model;
+	private Application model;
 
 
 	/**
 	 *	Vytvoření objektu na základě parametrů z getu.
 	 */
-	this(ModelBuilder model)
+	this(Application model)
 	{
 		this.model = model;
 	}
+
 
 
 	@property string className()
@@ -143,26 +165,30 @@ class Command : AbstractCommand
 	 */
 	IResponse fetch(Request request, IResponse response)
 	{
-		this.logger.log("before assert");
+		string repoName = this.prepareRepository(request.command);
+		Repository repo = this.model.getRepositoryByName(repoName);
+		if (! repo) {
+			throw new RepositoryNotFoundException(format("Repository: [%s] not defined.", repoName));
+		}
+
+		string maskedCommand = this.maskedRepository(repo, request.command);
 
 		//	Ověření přístupů.
-		this.assertAccess(request);
-
-		this.logger.log("after assert");
+		this.assertAccess(request, repo, maskedCommand);
 
 		//	Ověření konzistence repozitáře. To znamená, zda
+		//	- neexistuje, vytvořit
 		//	- je bare
 		//	- má nastavené defaultní hooky
 		//	- ...
-		this.model.application.doNormalizeRepository(this.prepareRepository(request.getCommand()), RepositoryType.MERCURIAL);
+		/*
+		this.model.application.doNormalizeRepository(this.prepareRepository(request.command), RepositoryType.MERCURIAL);
+		*/
 
 		//	Výstup
 		ExecResponse response2 = cast(ExecResponse) response;
-		string masked;
-		response2.setCommand(
-			masked = this.maskedRepository(
-				request.getCommand()));
-		this.logger.log(format("masked command [%s] to [%s]", request.getCommand(), masked));
+		response2.setCommand(maskedCommand);
+		this.logger.log(format("masked command [%s] to [%s]", request.command, maskedCommand), "action");
 		return response2;
 	}
 
@@ -172,25 +198,17 @@ class Command : AbstractCommand
 	/**
 	 * Ověření oprávnění.
 	 */
-	private void assertAccess(Request request)
+	private void assertAccess(Request request, Repository repo, string cmd)
 	{
-		string original = this.prepareRepository(request.getCommand());
-		string cmd = this.maskedRepository(request.getCommand());
-		Repository repo = new Repository(original, RepositoryType.MERCURIAL);
 		Permission perm = this.makePermission(cmd);
-
-		if (! this.model.application.hasRepository(original)) {
-			throw new RepositoryNotFoundException(format("Repository: [%s] not defined.", original));
-		}
-
-		if (! this.model.application.isAllowed(new User(request.getUser()), repo, perm)) {
+		if (! this.model.isAllowed(new User(request.user), repo, perm)) {
 			//	Rozlišujeme tu jen vytváření, možností přístupu. Read nebo 
 			//	Write musí řešit hooky. Jinak to neumím.
 			switch (perm) {
 				case Permission.INIT:
-					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot creating mercurial repository: [%s].", request.getUser(), original));
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot creating mercurial repository: [%s].", request.user, repo.name));
 				default:
-					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot access to mercurial repository: [%s].", request.getUser(), original));
+					throw new AccessDeniedException(format("Access Denied for [%s]. User cannot access to mercurial repository: [%s].", request.user, repo.name));
 			}
 		}
 	}
@@ -219,26 +237,25 @@ class Command : AbstractCommand
 	/**
 	 * Nahradit jméno repozitáře v commandu.
 	 */
-	private string maskedRepository(string cmd)
+	private string maskedRepository(Repository repository, string cmd)
 	{
 		if (! cmd) {
 			return cmd;
 		}
 
-		string prefix = this.model.application.getDefaultRepositoryPath();
 		string s;
 
 		if (0 == indexOf(cmd, CMD_INIT)) {
 			s = cmd[CMD_INIT.length .. $];
 			s = s.strip();
-			return format("%s %s%s", CMD_INIT, prefix, s);
+			return format("%s %s%s", CMD_INIT, repository.path.path, s);
 		}
 		long i;
 		if ((0 == indexOf(cmd, CMD_SERVER_START))
 				&& ((i = lastIndexOf(cmd, CMD_SERVER_END)) + CMD_SERVER_END.length) == cmd.length) {
 			s = cmd[CMD_SERVER_START.length .. i];
 			s = s.strip();
-			return format("%s %s%s %s", CMD_SERVER_START, prefix, s, CMD_SERVER_END);
+			return format("%s %s%s %s", CMD_SERVER_START, repository.path.path, s, CMD_SERVER_END);
 		}
 		return cmd;
 	}
@@ -267,3 +284,74 @@ class Command : AbstractCommand
 
 
 }
+/**
+ * Scénář, kdy repozitář neexistuje.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "hg -R stasi.hg serve --stdio";
+	Request request = new Request(["stasi", "shell", "--config", "./build/sample.xml", "--user", "franta"], env);
+	Application model = new Application();
+	Command cmd = new Command(model);
+	IResponse response = cmd.createResponse(request);
+	assert(cmd.className == "stasi.adapters.mercurial.Command", "Spatný typ commandu");
+	try {
+		response = cmd.fetch(request, response);
+	}
+	catch (RepositoryNotFoundException e) {
+		assert("Repository: [stasi.hg] not defined.", e.msg);
+	}
+}
+/**
+ * Scénář, kdy uživatel neexistuje.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "hg -R stasi.hg serve --stdio";
+	Request request = new Request(["stasi", "shell", "--config", "./build/sample.xml", "--user", "franta"], env);
+	Application model = new Application();
+	Repository repo = new Repository("stasi.hg", RepositoryType.MERCURIAL);
+	repo.path = new Dir("foo/doo");
+	model.repositories ~= repo;
+	
+	Command cmd = new Command(model);
+	IResponse response = cmd.createResponse(request);
+	try {
+		response = cmd.fetch(request, response);
+	}
+	catch (AccessDeniedException e) {
+		assert("Access Denied for [franta]. User cannot access to mercurial repository: [stasi.hg]." == e.msg, e.msg);
+	}
+}
+/**
+ * Scénář úspěšného příštupu k repozitáři.
+ */
+unittest {
+	string[string] env;
+	env["SSH_ORIGINAL_COMMAND"] = "hg -R stasi.hg serve --stdio";
+	Request request = new Request(["stasi.git", "shell", "--config", "./build/sample.xml", "--user", "franta"], env);
+	Application model = new Application();
+
+	//	Repozitář
+	Repository repo = new Repository("stasi.hg", RepositoryType.MERCURIAL);
+	repo.path = new Dir("foo/doo");
+	model.repositories ~= repo;
+
+	//	Uživatel
+	User user = new User("franta");
+	model.users ~= user;
+	
+	//	ACL
+	Permission perm = Permission.DENY | Permission.READ | Permission.WRITE;
+	user.repositories[repo.name] = new AccessRepository(
+			repo.name,
+			repo.type, 
+			perm);
+	
+	//	Příkaz
+	Command cmd = new Command(model);
+	IResponse response = cmd.createResponse(request);
+	response = cmd.fetch(request, response);
+	assert(response.toString() == "cmd:[hg -R foo/doo/stasi.hg serve --stdio]", response.toString());
+}
+

@@ -40,7 +40,7 @@ class Dispatcher
 	/**
 	 * Manipulace s daty.
 	 */
-	private ModelBuilder model;
+	private ModelBuilder modelBuilder;
 
 
 	/**
@@ -66,7 +66,7 @@ class Dispatcher
 	 */
 	this(Config config, ModelBuilder model)
 	{
-		this.model = model;
+		this.modelBuilder = model;
 		this.config = config;
 	}
 
@@ -135,17 +135,17 @@ class Dispatcher
 		foreach (r; this.routers) {
 			if (r.match(request)) {
 				this.logger.trace(format("route.class: %s", r.className), "route");
-				action = r.getAction(request, this.model);
+				action = r.getAction(request, this.modelBuilder);
 				break;
 			}
 		}
 
 		if (! action) {
-			action = new OriginalCommand(this.model);
+			action = new OriginalCommand(this.modelBuilder.application);
 		}
 
 		this.logger.trace(format("action=[%s]", action.className), "dispatch");
-		action.setLogger(this.logger);
+		action.logger = this.logger;
 
 		IResponse response = this.fireAction(request, action);
 		this.logger.trace(response.toString(), "response");

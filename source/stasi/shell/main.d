@@ -41,7 +41,6 @@ import mercurial = stasi.adapters.mercurial;
  */
 int main(string[] args)
 {
-//*
 	Config config;
 	Logger logger;
 	Request request;
@@ -58,7 +57,7 @@ int main(string[] args)
 		logger = new Logger();
 		//logger.addListener(new OutputWriter(), new CommonFilter(Level.TRACE));
 		logger.addListener(
-				new FileWriter(File((config.logsPath ~ "stasi.log"), "a")),
+				new FileWriter(File((config.logsPath.path ~ "stasi.log"), "a")),
 				new CommonFilter(Level.TRACE)
 				);
 	}
@@ -70,8 +69,6 @@ int main(string[] args)
 	//	Process
 	try {
 		logger.info("== start ==");
-		//Request request = (new Router())
-				//.createRequest(args);
 		int ret = (new Dispatcher(config, new ModelBuilder(config, logger)))
 				.addRoute(new stasi.routing.Router())
 				.addRoute(new git.Router())
@@ -96,7 +93,7 @@ int main(string[] args)
 				"fail");
 		return 3;
 	}
-//*/
+
 	return 4;
 }
 
