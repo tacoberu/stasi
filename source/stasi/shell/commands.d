@@ -17,13 +17,14 @@
 
 module stasi.commands;
 
-import taco.logging;
-
 import stasi.request;
 import stasi.model;
 import stasi.routing;
 import stasi.responses;
 import stasi.authentification;
+import stasi.config;
+
+import taco.logging;
 
 import std.stdio;
 import std.string;
@@ -299,20 +300,21 @@ unittest {
 
 
 /**
- *	Zkontroluje, zda je config v pořádku.
+ * Zkontroluje, zda config neobsahuje nějaké problémy, díky kterým by
+ * nebylo možné jej načíst.
  */
 class VerifyConfigCommand : AbstractCommand
 {
 
-	private IModel _model;
+	private IModelBuilder _model;
 
 
 	/**
 	 *	Vytvoření objektu na základě parametrů z getu.
 	 */
-	this(IModel model)
+	this(IModelBuilder modelBuilder)
 	{
-		this._model = model;
+		this._model = modelBuilder;
 	}
 
 
@@ -337,7 +339,7 @@ class VerifyConfigCommand : AbstractCommand
 	/**
 	 * Model aplikace
 	 */
-	@property IModel model()
+	@property IModelBuilder model()
 	{
 		return this._model;
 	}
@@ -350,8 +352,8 @@ class VerifyConfigCommand : AbstractCommand
 	IResponse fetch(Request request, IResponse response)
 	{
 		EchoResponse response2 = cast(EchoResponse) response;
-		response2.content = "Verifing config: ";
-		this.model.hasRepository("any");
+		response2.content = "Verifing config [" ~ this.model.config.configFile ~ "]: ";
+		this.model.application.hasRepository("any");
 		response2.content ~= "OK\n";
 		
 		return response2;
@@ -361,19 +363,55 @@ class VerifyConfigCommand : AbstractCommand
 
 }
 /**
- * Korektní získání verze stasi.
+ * Soubor neexistuje.
  */
 unittest {
 	string[string] env;
 	Request request = new Request(["stasi", "version"], env);
-	Application model = new Application();
+	Config config = new Config(request);
+	ModelBuilder model = new ModelBuilder(config, new Logger());
+	VerifyConfigCommand cmd = new VerifyConfigCommand(model);
+	IResponse response = cmd.createResponse(request);
+	assert(cmd.className == "stasi.commands.VerifyConfigCommand", "Spatný typ commandu");
+	try {
+		response = cmd.fetch(request, response);
+	}
+	catch (std.file.FileException e) {
+		assert(".config/stasi/config.xml: No such file or directory" == e.msg, e.msg);
+	}
+}
+/**
+ * Pošahaný soubor.
+ */
+unittest {
+	string[string] env;
+	Request request = new Request(["stasi", "version", "--config", "tests_data/corrupted.xml"], env);
+	Config config = new Config(request);
+	ModelBuilder model = new ModelBuilder(config, new Logger());
+	VerifyConfigCommand cmd = new VerifyConfigCommand(model);
+	IResponse response = cmd.createResponse(request);
+	assert(cmd.className == "stasi.commands.VerifyConfigCommand", "Spatný typ commandu");
+	try {
+		response = cmd.fetch(request, response);
+	}
+	catch (stasi.config.InvalidConfigException e) {
+		assert("Invalid xml format: [Line 38, column 2: end tag name \"s:settingx\" differs from start tag name \"s:setting\",Line 10, column 2: Element,Line 10, column 2: Content,Line 2, column 1: Element,Line 1, column 1: Document,]." == e.msg, e.msg);
+	}
+}
+/**
+ * Konfigurace je v pořádku.
+ */
+unittest {
+	string[string] env;
+	Request request = new Request(["stasi", "version", "--config", "tests_data/correct.xml"], env);
+	Config config = new Config(request);
+	ModelBuilder model = new ModelBuilder(config, new Logger());
 	VerifyConfigCommand cmd = new VerifyConfigCommand(model);
 	IResponse response = cmd.createResponse(request);
 	assert(cmd.className == "stasi.commands.VerifyConfigCommand", "Spatný typ commandu");
 	response = cmd.fetch(request, response);
-	assert(response.toString() == "Verifing config: OK\n", "[" ~ response.toString() ~ ']');
+	assert(response.toString() == "Verifing config [tests_data/correct.xml]: OK\n", "[" ~ response.toString() ~ ']');
 }
-
 
 
 

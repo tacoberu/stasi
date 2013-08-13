@@ -1,0 +1,196 @@
+<?xml version="1.0"?>
+<s:stasi xmlns:s="urn:nermal/stasi"
+			xmlns:c="urn:nermal/contact">
+
+
+
+	<!--
+		Nastavení serveru.
+		-->
+	<s:setting>
+		<!--
+			Kde budou umístěny repozitáře.
+			-->
+		<s:repo-path>std/lab/stasi/</s:repo-path>
+		<!--
+			Kde budou umístěny pracovní prostory, když jsou potřeba.
+			-->
+		<s:working-path>std/lab/working</s:working-path>
+
+		<!--
+			Možnost se přihlásit na server.
+			-->
+		<s:signin>
+			<s:user ref="mira" />
+			<s:group ref="admins" />
+		</s:signin>
+
+
+		<!--
+			Kdo smí vytvářet repozitáře.
+			-->
+		<s:init-repo>
+			<s:user ref="mira" />
+			<s:user ref="taco" />
+			<s:group ref="admins" />
+		</s:init-repo>
+
+	</s:setting>
+
+
+
+	<!--
+		Skupina uživatelů
+		-->
+	<s:group name="admins">
+		<s:user ref="taco" />
+		<s:user ref="mira" />
+	</s:group>
+
+	<s:group name="vyvojari">
+		<s:user ref="taco" />
+		<s:user ref="mira" />
+		<s:user ref="fean" />
+	</s:group>
+
+
+
+	<!--
+		Definice konkrétních uživatelů. Definujeme email a ssh. Klíčů může být
+		vícero, protože pod stejným jménem se může přihlašovat z více míst.
+		-->
+	<s:user name="taco">
+		<c:firstname>Martin</c:firstname>
+		<c:lastname>Takáč</c:lastname>
+		<c:email>mt@taco-beru.name</c:email>
+		<s:ssh type="dsa">ssh-dss AAAAB3NzaC1kc3MAAACBA...l6yXMPCoEtM6WGJWo5vxA== taco@taco.example.cz</s:ssh>
+		<s:ssh type="dsa">ssh-dss AAAAB3NzaA1kc3MAAACBAIX...66tl5l6yXMPCoEtM6WGJWo5vxA== taco@home.localhost</s:ssh>
+	</s:user>
+
+	<s:user name="mira">
+		<c:firstname>Miroslav</c:firstname>
+		<c:lastname>Falco</c:lastname>
+		<c:email>mf@taco-beru.name</c:email>
+		<s:ssh type="dsa">ssh-dss AAAAB3NzaC1kc3MAAACBAIXclzahWltq96N5cz3Rf...6yXMPCoEtM6WGJWo5vxA== taco@taco.example.cz</s:ssh>
+	</s:user>
+
+	<s:user name="fean">
+		<c:firstname>Andreaw</c:firstname>
+		<c:lastname>Fean</c:lastname>
+		<c:email>mt@taco-beru.name</c:email>
+		<s:ssh type="dsa">ssh-dss AAAAB3NzaC1kc3MAAACBAIXcl...oEtM6WGJWo5vxA== taco@taco.example.cz</s:ssh>
+	</s:user>
+
+	<s:user name="michal">
+		<c:email>michal@example.org</c:email>
+	</s:user>
+
+
+
+	<!--
+		Definice repositářů, jejiích umístění, jejich speciální konfigurace.
+		-->
+	<s:repository name="stasi-admin" type="git">
+		<s:repo-path>repository/stasi-admin</s:repo-path>
+		<s:working-path>.config/stasi</s:working-path>
+	</s:repository>
+	<s:repository name="stasi.git" type="git">
+		<s:working-path>Development/lab/working</s:working-path>
+	</s:repository>
+	<s:repository name="testing.git" type="git" />
+	<s:repository name="projekt51" type="git" />
+	<s:repository name="zizkov.hg" type="mercurial" />
+	<s:repository name="koralky.hg" type="mercurial" />
+	<s:repository name="huge.git" type="git" />
+
+
+	<!--
+		Definice kdo může k jakému repozitáři s jakými právy.
+		-->
+	<s:acl>
+		<!--
+			Repozitář, který spravuje přístupy.
+			-->
+		<s:repository ref="stasi-admin" />
+		<s:access permission="read,write,remove">
+			<s:group ref="admins" />
+		</s:access>
+	</s:acl>
+
+
+	<!--
+	repo testing
+		RW+     =   @all
+		-->
+	<s:acl>
+		<s:repository ref="testing.git" />
+		<s:access permission="init,read,write,remove">
+			<s:group ref="all" />
+			<s:user ref="taco" />
+		</s:access>
+	</s:acl>
+
+
+	<s:acl>
+		<s:repository ref="huge.git" />
+		<s:access permission="init,read,write,remove">
+			<s:group ref="all" />
+			<s:user ref="michal" />
+		</s:access>
+	</s:acl>
+
+
+	<!--
+	repo projekt51 zizkov
+		RW+ = michal taco
+		RW  = @vyvojari
+		R   = @testeri
+		-->
+	<s:acl>
+		<s:repository ref="projekt51" />
+		<s:repository ref="zizkov.hg" />
+		<s:access permission="init,read,write,remove">
+			<s:user ref="michal" />
+			<s:user ref="taco" />
+		</s:access>
+		<s:access permission="read,write">
+			<s:group ref="vyvojari" />
+		</s:access>
+		<s:access permission="read">
+			<s:group ref="testeri" />
+			<s:user ref="fean" />
+		</s:access>
+	</s:acl>
+
+
+	<!--
+	repo koralky
+		RW+     =   taco
+		-->
+	<s:acl>
+		<s:repository ref="koralky.hg" />
+		<s:access permission="read">
+			<s:user ref="taco" />
+		</s:access>
+		<s:access permission="read,write">
+			<s:user ref="vojta" />
+		</s:access>
+	</s:acl>
+
+
+	<s:acl>
+		<s:repository ref="stasi.git" />
+		<s:access permission="read,write">
+			<s:user ref="taco" />
+			<s:user ref="vojta" />
+			<s:user ref="fean" />
+		</s:access>
+	</s:acl>
+
+
+	<s:user name="vojta">
+		<c:email>vojta@example.org</c:email>
+	</s:user>
+
+
+</s:stasi>

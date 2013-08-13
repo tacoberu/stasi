@@ -299,7 +299,7 @@ unittest {
 		response = cmd.fetch(request, response);
 	}
 	catch (RepositoryNotFoundException e) {
-		assert("Repository: [stasi.hg] not defined.", e.msg);
+		assert("Repository: [stasi.hg] not defined." == e.msg);
 	}
 }
 /**

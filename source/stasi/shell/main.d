@@ -14,12 +14,6 @@
  * @author     Martin Takáč <taco@taco-beru.name>
  */
 
-import std.stdio;
-import std.string;
-import std.process;
-
-import taco.logging;
-
 import stasi.config;
 import stasi.request;
 import stasi.routing;
@@ -31,6 +25,11 @@ import auth = stasi.authentification;
 import git = stasi.adapters.git;
 import mercurial = stasi.adapters.mercurial;
 
+import taco.logging;
+
+import std.stdio;
+import std.string;
+import std.process;
 
 
 /**

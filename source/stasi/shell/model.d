@@ -71,6 +71,11 @@ interface IModelBuilder
 	@property Application application();
 
 
+	/**
+	 * Getted Condif
+	 */
+	@property Config config();// const
+
 }
 
 
@@ -84,7 +89,7 @@ class ModelBuilder : IModelBuilder
 	/**
 	 * Nastavení aplikace, práv, uživatelů, repozitářů.
 	 */
-	private Config config;
+	private Config _config;
 	
 	
 	/**
@@ -104,7 +109,7 @@ class ModelBuilder : IModelBuilder
 	 */
 	this(Config config, Logger logger)
 	{
-		this.config = config;
+		this._config = config;
 		this.logger = logger;
 	}
 
@@ -124,6 +129,16 @@ class ModelBuilder : IModelBuilder
 
 
 	/**
+	 * Getted Condif
+	 */
+	@property Config config() // const
+	{
+		return this._config;
+	}
+
+
+
+	/**
 	 * Create new Application
 	 */
 	Application createApplication()
@@ -132,7 +147,7 @@ class ModelBuilder : IModelBuilder
 		this.logger.info(format("load file: [%s]", this.config.configFile), "configuration");
 		
 		IConfigReader reader = new ConfigXmlReader(s);
-		this.config = reader.fill(this.config);
+		this._config = reader.fill(this.config);
 
 		Application app = new Application();
 		app.logger = this.logger;

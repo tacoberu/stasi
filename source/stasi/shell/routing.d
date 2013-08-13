@@ -88,7 +88,7 @@ class Router : IRoute
 	{
 		switch (request.action) {
 			case Action.VERIFY_CONFIG:
-				return new VerifyConfigCommand(cast(Application)model.application);
+				return new VerifyConfigCommand(model);
 			case Action.AUTH:
 				return new AuthCommand(cast(Application)model.application);
 			case Action.VERSION:
