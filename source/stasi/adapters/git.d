@@ -201,10 +201,8 @@ class Command : AbstractCommand
 		//	- je bare
 		//	- má nastavené defaultní hooky
 		//	- ...
-		this.model.doNormalizeRepository(
-				repo,
-				RepositoryType.GIT
-				);
+		this.model.doExistRepository(repo, RepositoryType.GIT);
+		this.model.doNormalizeRepository(repo, RepositoryType.GIT);
 
 		//	Výstup
 		ExecResponse response2 = cast(ExecResponse) response;

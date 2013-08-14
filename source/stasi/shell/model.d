@@ -320,7 +320,7 @@ class Application : IModel
 		this.logger.log(format("not match(%s, %s, %d)", user.name, repository.name, perm), "auth");
 		return false;
 	}
-	//	Zádní uživatele, zádné repozitáře.
+	//	Žádní uživatele, zádné repozitáře - nemůže přistupovat.
 	unittest {
 		Application app = new Application(new Dir("."));
 		assert(false == app.isAllowed(new User("foo"), new Repository("pokus.git", RepositoryType.GIT), Permission.READ));
@@ -374,12 +374,9 @@ class Application : IModel
 
 
 	/**
-	 * Ověření konzistence repozitáře. To znamená, zda
-	 * - je bare
-	 * - má nastavené defaultní hooky
-	 * - ...
+	 * Pokud repozitář neexistuje, tak jej vytvoří.
 	 */
-	void doNormalizeRepository(Repository repo, RepositoryType type)
+	void doExistRepository(Repository repo, RepositoryType type)
 	{
 		string full = this.homePath.path ~ repo.full;
 		
@@ -387,7 +384,18 @@ class Application : IModel
 		if (! std.file.exists(full)) {
 			this.getAdapterModel(repo, type).doCreateRepository(repo);
 		}
+	}
 
+
+
+	/**
+	 * Ověření konzistence repozitáře. To znamená, zda
+	 * - je bare
+	 * - má nastavené defaultní hooky
+	 * - ...
+	 */
+	void doNormalizeRepository(Repository repo, RepositoryType type)
+	{
 		this.getAdapterModel(repo, type).doNormalizeAssignHooks(repo);
 	}
 

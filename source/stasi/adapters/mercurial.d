@@ -182,10 +182,8 @@ class Command : AbstractCommand
 		//	- je bare
 		//	- má nastavené defaultní hooky
 		//	- ...
-		this.model.doNormalizeRepository(
-				repo,
-				RepositoryType.MERCURIAL
-				);
+//		this.model.doExistRepository(repo, RepositoryType.MERCURIAL);
+		this.model.doNormalizeRepository(repo, RepositoryType.MERCURIAL);
 
 		//	Výstup
 		ExecResponse response2 = cast(ExecResponse) response;
@@ -395,9 +393,11 @@ class Model : IAdapterModel
 		
 		//	Vytvoření a inicializace.
 		std.process.system("hg init > /dev/null");
-		std.process.system("echo '[hooks]' > .hg/hgrc");
+		std.process.system("echo '[ui]' >> .hg/hgrc");
+		std.process.system("echo 'username = Stasi' >> .hg/hgrc");
+		std.process.system("echo '[hooks]' >> .hg/hgrc");
 		std.process.system("echo 'changegroup.update = hg update' >> .hg/hgrc");
-		
+
 		//	První commit
 		std.process.system("echo 'empty' > README");
 		std.process.system("hg add README > /dev/null");
