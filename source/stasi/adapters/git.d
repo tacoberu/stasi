@@ -30,6 +30,7 @@ import std.stdio;
 import std.array;
 import std.regex;
 import std.string;
+import std.file;
 
 
 /**
@@ -190,7 +191,6 @@ class Command : AbstractCommand
 		}
 
 		string maskedCommand = this.maskedRepository(repo, request.command);
-		//writefln("maskedCommand: %s", maskedCommand);
 
 		//	Ověření přístupů.
 		this.assertAccess(request, repo, maskedCommand);
@@ -201,9 +201,10 @@ class Command : AbstractCommand
 		//	- je bare
 		//	- má nastavené defaultní hooky
 		//	- ...
-		/*
-		this.model.application.doNormalizeRepository(this.prepareRepository(request.command), RepositoryType.GIT);
-		*/
+		this.model.doNormalizeRepository(
+				repo,
+				RepositoryType.GIT
+				);
 
 		//	Výstup
 		ExecResponse response2 = cast(ExecResponse) response;
@@ -298,7 +299,7 @@ unittest {
 	string[string] env;
 	env["SSH_ORIGINAL_COMMAND"] = "git-receive-pack 'stasi.git'";
 	Request request = new Request(["stasi", "shell", "--config", "./build/sample.xml", "--user", "franta"], env);
-	Application model = new Application();
+	Application model = new Application(new Dir("."));
 	Command cmd = new Command(model);
 	IResponse response = cmd.createResponse(request);
 	assert(cmd.className == "stasi.adapters.git.Command");
@@ -316,7 +317,7 @@ unittest {
 	string[string] env;
 	env["SSH_ORIGINAL_COMMAND"] = "git-receive-pack 'stasi.git'";
 	Request request = new Request(["stasi", "shell", "--config", "./build/sample.xml", "--user", "franta"], env);
-	Application model = new Application();
+	Application model = new Application(new Dir("."));
 	Repository repo = new Repository("stasi.git", RepositoryType.GIT);
 	repo.path = new Dir("foo/doo");
 	model.repositories ~= repo;
@@ -337,7 +338,7 @@ unittest {
 	string[string] env;
 	env["SSH_ORIGINAL_COMMAND"] = "git-receive-pack 'stasi.git'";
 	Request request = new Request(["stasi.git", "shell", "--config", "./build/sample.xml", "--user", "franta"], env);
-	Application model = new Application();
+	Application model = new Application(new Dir("temp"));
 
 	//	Repozitář
 	Repository repo = new Repository("stasi.git", RepositoryType.GIT);
@@ -360,4 +361,94 @@ unittest {
 	IResponse response = cmd.createResponse(request);
 	response = cmd.fetch(request, response);
 	assert(response.toString() == "cmd:[git-receive-pack 'foo/doo/stasi.git']");
+}
+
+
+
+/**
+ * Práce s git repozitářem.
+ */
+class Model : IAdapterModel
+{
+
+	/**
+	 * Cesta k domácímu adresáři.
+	 */
+	Dir homePath;
+
+
+	/**
+	 *	
+	 */
+	this(Dir homePath)
+	{
+		this.homePath = homePath;
+	}
+
+
+
+	/**
+	 * Vytvoření repozitáře.
+	 * Git křičí, když je vytvořený prázdný repozitář. Proto tam hodíme první komit.
+	 * Také je potřeba nastavit git, aby přijímal příchozí commity.
+	 * 
+	 * Ono to také může bejt tak, že chceme přiřadit již exustující repozitář. To pak musím udělat jinak. @TODO
+	 */
+	void doCreateRepository(Repository repository)
+	{
+		string oldcwd = getcwd();
+		
+		string full = this.homePath.path ~ repository.full;
+		std.process.system(format("mkdir -p %s", full));
+		
+		chdir(full);
+		
+		//	Vytvoření a inicializace.
+		std.process.system("git init > /dev/null");
+		std.process.system("echo '[receive]' >> .git/config");
+		std.process.system("echo '	denyCurrentBranch = ignore' >> .git/config");
+		
+		//	První commit
+		std.process.system("echo 'empty' > README");
+		std.process.system("git add README > /dev/null");
+		std.process.system("git commit -m 'Initialize commit.' > /dev/null");
+
+		chdir(oldcwd);
+	}
+
+
+
+	/**
+	 * Zohlední změněné hooky v repozitáři.
+	 */
+	void doNormalizeAssignHooks(Repository repo)
+	{
+		/*
+		//	Post Receive
+		postReceive = fullrepo . '/hooks/post-receive';
+		postReceiveTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-receive');
+		if (file_exists(postReceive) && (! is_link(postReceive) || readlink(postReceive) != postReceiveTo)) {
+			rename(postReceive, postReceive . '-original');
+		}
+
+		if (! file_exists(postReceive)) {
+			symlink(postReceiveTo, postReceive);
+		}
+
+		//	Post Update
+		postUpdate = fullrepo . '/hooks/post-update';
+		postUpdateTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-update');
+		if (file_exists(postUpdate) && (! is_link(postUpdate) || readlink(postUpdate) != postUpdateTo)) {
+			rename(postUpdate, postUpdate . '-original');
+		}
+
+		if (! file_exists(postUpdate)) {
+			symlink(postUpdateTo, postUpdate);
+		}
+		//*/
+	}
+
+
+
+
 }

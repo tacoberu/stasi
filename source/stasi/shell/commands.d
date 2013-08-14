@@ -25,6 +25,7 @@ import stasi.authentification;
 import stasi.config;
 
 import taco.logging;
+import taco.utils;
 
 import std.stdio;
 import std.string;
@@ -199,7 +200,7 @@ unittest {
 	string[string] env;
 	env["SSH_ORIGINAL_COMMAND"] = "ls -la";
 	Request request = new Request(["stasi", "shell"], env);
-	Application model = new Application();
+	Application model = new Application(new Dir("."));
 	OriginalCommand cmd = new OriginalCommand(model);
 	IResponse response = cmd.createResponse(request);
 	assert(cmd.className == "stasi.commands.OriginalCommand", "Spatný typ commandu");
@@ -275,7 +276,7 @@ class VersionCommand : AbstractCommand
 unittest {
 	string[string] env;
 	Request request = new Request(["stasi", "version"], env);
-	Application model = new Application();
+	Application model = new Application(new Dir("."));
 	VersionCommand cmd = new VersionCommand(model);
 	IResponse response = cmd.createResponse(request);
 	assert(cmd.className == "stasi.commands.VersionCommand", "Spatný typ commandu");
@@ -288,7 +289,7 @@ unittest {
 unittest {
 	string[string] env;
 	Request request = new Request(["stasi", "version", "--config", "./build/sample.xml", "--user", "franta"], env);
-	Application model = new Application();
+	Application model = new Application(new Dir("."));
 	VersionCommand cmd = new VersionCommand(model);
 	IResponse response = cmd.createResponse(request);
 	assert(cmd.className == "stasi.commands.VersionCommand", "Spatný typ commandu");

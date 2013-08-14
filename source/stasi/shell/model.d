@@ -149,9 +149,8 @@ class ModelBuilder : IModelBuilder
 		IConfigReader reader = new ConfigXmlReader(s);
 		this._config = reader.fill(this.config);
 
-		Application app = new Application();
+		Application app = new Application(this.config.homePath);
 		app.logger = this.logger;
-		app.homePath = this.config.homePath;
 		app.defaultRepositoryPath = this.config.defaultRepositoryPath;
 		app.defaultWorkingPath = this.config.defaultWorkingPath;
 
@@ -227,6 +226,16 @@ class Application : IModel
 	 * Loggovadlo.
 	 */
 	private ILogger _logger;
+
+
+	/**
+	 *	
+	 */
+	this(Dir homePath)
+	{
+		this.homePath = homePath;
+	}
+
 
 
 	/**
@@ -313,11 +322,11 @@ class Application : IModel
 	}
 	//	Zádní uživatele, zádné repozitáře.
 	unittest {
-		Application app = new Application();
+		Application app = new Application(new Dir("."));
 		assert(false == app.isAllowed(new User("foo"), new Repository("pokus.git", RepositoryType.GIT), Permission.READ));
 	}
 	unittest {
-		Application app = new Application();
+		Application app = new Application(new Dir("."));
 		User user = new User("foo");
 		user.repositories["pokus.git"] = new AccessRepository("pokus.git", RepositoryType.GIT, Permission.READ);
 		user.repositories["druhej.hg"] = new AccessRepository("druhej.hg", RepositoryType.MERCURIAL, Permission.READ | Permission.WRITE | Permission.REMOVE);
@@ -370,156 +379,35 @@ class Application : IModel
 	 * - má nastavené defaultní hooky
 	 * - ...
 	 */
-	void doNormalizeRepository(string repo, RepositoryType type)
+	void doNormalizeRepository(Repository repo, RepositoryType type)
 	{
-		Repository repository = this.getRepositoryByName(repo);
-		string full = this.homePath.path ~ repository.full;
+		string full = this.homePath.path ~ repo.full;
 		
 		//	Existence souboru
 		if (! std.file.exists(full)) {
-			final switch(type) {
-				case RepositoryType.GIT:
-					this.doCreateRepositoryGit(repository);
-					break;
-				case RepositoryType.MERCURIAL:
-					this.doCreateRepositoryMercurial(repository);
-					break;
-				case RepositoryType.UNKNOW:
-					throw new Exception(format("Unknow type repository and not exists: [%s]", repo));
-			}
+			this.getAdapterModel(repo, type).doCreateRepository(repo);
 		}
 
+		this.getAdapterModel(repo, type).doNormalizeAssignHooks(repo);
+	}
+
+
+
+	/**
+	 * Získání adapteru pro práci s konkrétním typem repozitáře.
+	 */
+	private IAdapterModel getAdapterModel(Repository repo, RepositoryType type)
+	{
 		final switch(type) {
 			case RepositoryType.GIT:
-				this.doNormalizeAssignHooksGit(repository);
-				break;
+				return new stasi.adapters.git.Model(this.homePath);
 			case RepositoryType.MERCURIAL:
-				this.doNormalizeAssignHooksMercurial(repository);
-				break;
+				return new stasi.adapters.mercurial.Model(this.homePath);
 			case RepositoryType.UNKNOW:
-				throw new Exception(format("Unknow type repository: [%s]", repo));
+				throw new Exception(format("Unknow type repository and not exists: [%s]", repo));
 		}
 	}
 
-
-
-	/**
-	 * Zohlední změněné hooky v repozitáři.
-	 */
-	private void doNormalizeAssignHooksGit(Repository repository)
-	{
-		/*
-		//	Post Receive
-		postReceive = fullrepo . '/hooks/post-receive';
-		postReceiveTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-receive');
-		if (file_exists(postReceive) && (! is_link(postReceive) || readlink(postReceive) != postReceiveTo)) {
-			rename(postReceive, postReceive . '-original');
-		}
-
-		if (! file_exists(postReceive)) {
-			symlink(postReceiveTo, postReceive);
-		}
-
-		//	Post Update
-		postUpdate = fullrepo . '/hooks/post-update';
-		postUpdateTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-update');
-		if (file_exists(postUpdate) && (! is_link(postUpdate) || readlink(postUpdate) != postUpdateTo)) {
-			rename(postUpdate, postUpdate . '-original');
-		}
-
-		if (! file_exists(postUpdate)) {
-			symlink(postUpdateTo, postUpdate);
-		}
-		//*/
-	}
-
-
-
-	/**
-	 * Zohlední změněné hooky v repozitáři.
-	 */
-	private void doNormalizeAssignHooksMercurial(Repository repository)
-	{
-		/*
-		//	Post Receive
-		postReceive = fullrepo . '/hooks/post-receive';
-		postReceiveTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-receive');
-		if (file_exists(postReceive) && (! is_link(postReceive) || readlink(postReceive) != postReceiveTo)) {
-			rename(postReceive, postReceive . '-original');
-		}
-
-		if (! file_exists(postReceive)) {
-			symlink(postReceiveTo, postReceive);
-		}
-
-		//	Post Update
-		postUpdate = fullrepo . '/hooks/post-update';
-		postUpdateTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-update');
-		if (file_exists(postUpdate) && (! is_link(postUpdate) || readlink(postUpdate) != postUpdateTo)) {
-			rename(postUpdate, postUpdate . '-original');
-		}
-
-		if (! file_exists(postUpdate)) {
-			symlink(postUpdateTo, postUpdate);
-		}
-		//*/
-	}
-
-
-
-	/**
-	 * Vytvoření repozitáře.
-	 * Git křičí, když je vytvořený prázdný repozitář. Proto tam hodíme první komit.
-	 * Také je potřeba nastavit git, aby přijímal příchozí commity.
-	 */
-	private void doCreateRepositoryGit(Repository repository)
-	{
-		string oldcwd = getcwd();
-		
-		string full = this.homePath.path ~ repository.full;
-		std.process.system(format("mkdir -p %s", full));
-		
-		chdir(full);
-		
-		//	Vytvoření a inicializace.
-		std.process.system("git init > /dev/null");
-		std.process.system("echo '[receive]' >> .git/config");
-		std.process.system("echo '	denyCurrentBranch = ignore' >> .git/config");
-		
-		//	První commit
-		std.process.system("echo 'empty' > README");
-		std.process.system("git add README > /dev/null");
-		std.process.system("git commit -m 'Initialize commit.' > /dev/null");
-
-		chdir(oldcwd);
-	}
-
-
-
-	/**
-	 * Vytvoření repozitáře.
-	 */
-	private void doCreateRepositoryMercurial(Repository repository)
-	{
-		string oldcwd = getcwd();
-		
-		string full = this.homePath.path ~ repository.full;
-		std.process.system(format("mkdir -p %s", full));
-		
-		chdir(full);
-		
-		//	Vytvoření a inicializace.
-		std.process.system("hg init > /dev/null");
-		std.process.system("echo '[hooks]' > .hg/hgrc");
-		std.process.system("echo 'changegroup.update = hg update' >> .hg/hgrc");
-		
-		//	První commit
-		std.process.system("echo 'empty' > README");
-		std.process.system("hg add README > /dev/null");
-		std.process.system("hg commit -m 'Initialize commit.' > /dev/null");
-
-		chdir(oldcwd);
-	}
 
 }
 
@@ -751,4 +639,35 @@ class Acl
 	 * Seskupené oprávnění pro uživatele.
 	 */
 	Access[] access;
+}
+
+
+
+
+
+
+
+/**
+ * Práce s git repozitářem.
+ */
+interface IAdapterModel
+{
+
+	/**
+	 * Vytvoření repozitáře.
+	 * Git křičí, když je vytvořený prázdný repozitář. Proto tam hodíme první komit.
+	 * Také je potřeba nastavit git, aby přijímal příchozí commity.
+	 * 
+	 * Ono to také může bejt tak, že chceme přiřadit již exustující repozitář. To pak musím udělat jinak. @TODO
+	 */
+	void doCreateRepository(Repository repo);
+
+
+
+	/**
+	 * Zohlední změněné hooky v repozitáři.
+	 */
+	void doNormalizeAssignHooks(Repository repo);
+
+
 }

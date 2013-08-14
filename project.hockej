@@ -157,6 +157,13 @@
 		</goal>
 
 
+		<goal name="deploy-test"
+				description="Nahrání aplikace na testovací server."
+				>
+			<task type="common.exec">rsync --rsh="ssh -l root" build/stasi root@repo.c2d.cz:/home/cia/bin</task>
+		</goal>
+
+
 	</goals>
 
 </project>

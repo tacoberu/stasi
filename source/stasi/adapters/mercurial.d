@@ -28,6 +28,7 @@ import taco.utils;
 
 import std.stdio;
 import std.string;
+import std.file;
 
 
 
@@ -181,9 +182,10 @@ class Command : AbstractCommand
 		//	- je bare
 		//	- má nastavené defaultní hooky
 		//	- ...
-		/*
-		this.model.application.doNormalizeRepository(this.prepareRepository(request.command), RepositoryType.MERCURIAL);
-		*/
+		this.model.doNormalizeRepository(
+				repo,
+				RepositoryType.MERCURIAL
+				);
 
 		//	Výstup
 		ExecResponse response2 = cast(ExecResponse) response;
@@ -291,7 +293,7 @@ unittest {
 	string[string] env;
 	env["SSH_ORIGINAL_COMMAND"] = "hg -R stasi.hg serve --stdio";
 	Request request = new Request(["stasi", "shell", "--config", "./build/sample.xml", "--user", "franta"], env);
-	Application model = new Application();
+	Application model = new Application(new Dir("."));
 	Command cmd = new Command(model);
 	IResponse response = cmd.createResponse(request);
 	assert(cmd.className == "stasi.adapters.mercurial.Command", "Spatný typ commandu");
@@ -309,7 +311,7 @@ unittest {
 	string[string] env;
 	env["SSH_ORIGINAL_COMMAND"] = "hg -R stasi.hg serve --stdio";
 	Request request = new Request(["stasi", "shell", "--config", "./build/sample.xml", "--user", "franta"], env);
-	Application model = new Application();
+	Application model = new Application(new Dir("."));
 	Repository repo = new Repository("stasi.hg", RepositoryType.MERCURIAL);
 	repo.path = new Dir("foo/doo");
 	model.repositories ~= repo;
@@ -330,7 +332,7 @@ unittest {
 	string[string] env;
 	env["SSH_ORIGINAL_COMMAND"] = "hg -R stasi.hg serve --stdio";
 	Request request = new Request(["stasi.git", "shell", "--config", "./build/sample.xml", "--user", "franta"], env);
-	Application model = new Application();
+	Application model = new Application(new Dir("temp"));
 
 	//	Repozitář
 	Repository repo = new Repository("stasi.hg", RepositoryType.MERCURIAL);
@@ -355,3 +357,87 @@ unittest {
 	assert(response.toString() == "cmd:[hg -R foo/doo/stasi.hg serve --stdio]", response.toString());
 }
 
+
+
+/**
+ * Práce s hg repozitářem.
+ */
+class Model : IAdapterModel
+{
+
+
+	/**
+	 * Cesta k domácímu adresáři.
+	 */
+	Dir homePath;
+
+
+	/**
+	 *	
+	 */
+	this(Dir homePath)
+	{
+		this.homePath = homePath;
+	}
+
+
+	/**
+	 * Vytvoření repozitáře.
+	 */
+	void doCreateRepository(Repository repository)
+	{
+		string oldcwd = getcwd();
+		
+		string full = this.homePath.path ~ repository.full;
+		std.process.system(format("mkdir -p %s", full));
+		
+		chdir(full);
+		
+		//	Vytvoření a inicializace.
+		std.process.system("hg init > /dev/null");
+		std.process.system("echo '[hooks]' > .hg/hgrc");
+		std.process.system("echo 'changegroup.update = hg update' >> .hg/hgrc");
+		
+		//	První commit
+		std.process.system("echo 'empty' > README");
+		std.process.system("hg add README > /dev/null");
+		std.process.system("hg commit -m 'Initialize commit.' > /dev/null");
+
+		chdir(oldcwd);
+	}
+
+
+
+	/**
+	 * Zohlední změněné hooky v repozitáři.
+	 */
+	void doNormalizeAssignHooks(Repository repository)
+	{
+		/*
+		//	Post Receive
+		postReceive = fullrepo . '/hooks/post-receive';
+		postReceiveTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-receive');
+		if (file_exists(postReceive) && (! is_link(postReceive) || readlink(postReceive) != postReceiveTo)) {
+			rename(postReceive, postReceive . '-original');
+		}
+
+		if (! file_exists(postReceive)) {
+			symlink(postReceiveTo, postReceive);
+		}
+
+		//	Post Update
+		postUpdate = fullrepo . '/hooks/post-update';
+		postUpdateTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-update');
+		if (file_exists(postUpdate) && (! is_link(postUpdate) || readlink(postUpdate) != postUpdateTo)) {
+			rename(postUpdate, postUpdate . '-original');
+		}
+
+		if (! file_exists(postUpdate)) {
+			symlink(postUpdateTo, postUpdate);
+		}
+		//*/
+	}
+
+
+
+}
