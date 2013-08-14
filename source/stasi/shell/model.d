@@ -378,10 +378,10 @@ class Application : IModel
 	 */
 	void doExistRepository(Repository repo, RepositoryType type)
 	{
-		string full = this.homePath.path ~ repo.full;
+		string dest = this.homePath.path ~ repo.full;
 		
 		//	Existence souboru
-		if (! std.file.exists(full)) {
+		if (! std.file.exists(dest)) {
 			this.getAdapterModel(repo, type).doCreateRepository(repo);
 		}
 	}
@@ -396,7 +396,7 @@ class Application : IModel
 	 */
 	void doNormalizeRepository(Repository repo, RepositoryType type)
 	{
-		this.getAdapterModel(repo, type).doNormalizeAssignHooks(repo);
+		this.getAdapterModel(repo, type).doNormalizeRepository(repo);
 	}
 
 
@@ -675,7 +675,7 @@ interface IAdapterModel
 	/**
 	 * Zohlední změněné hooky v repozitáři.
 	 */
-	void doNormalizeAssignHooks(Repository repo);
+	void doNormalizeRepository(Repository repo);
 
 
 }

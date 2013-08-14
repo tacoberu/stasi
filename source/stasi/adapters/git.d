@@ -419,7 +419,7 @@ class Model : IAdapterModel
 	/**
 	 * Zohlední změněné hooky v repozitáři.
 	 */
-	void doNormalizeAssignHooks(Repository repo)
+	void doNormalizeRepository(Repository repo)
 	{
 		/*
 		//	Post Receive

@@ -386,17 +386,13 @@ class Model : IAdapterModel
 	{
 		string oldcwd = getcwd();
 		
-		string full = this.homePath.path ~ repository.full;
-		std.process.system(format("mkdir -p %s", full));
-		
-		chdir(full);
+		Dir dest = new Dir(this.homePath.path ~ repository.full);
+		std.process.system(format("mkdir -p %s", dest.path));
+		chdir(dest.path);
 		
 		//	Vytvoření a inicializace.
 		std.process.system("hg init > /dev/null");
-		std.process.system("echo '[ui]' >> .hg/hgrc");
-		std.process.system("echo 'username = Stasi' >> .hg/hgrc");
-		std.process.system("echo '[hooks]' >> .hg/hgrc");
-		std.process.system("echo 'changegroup.update = hg update' >> .hg/hgrc");
+		this.doCreateDefaultHgrc();
 
 		//	První commit
 		std.process.system("echo 'empty' > README");
@@ -411,8 +407,20 @@ class Model : IAdapterModel
 	/**
 	 * Zohlední změněné hooky v repozitáři.
 	 */
-	void doNormalizeAssignHooks(Repository repository)
+	void doNormalizeRepository(Repository repository)
 	{
+		string oldcwd = getcwd();
+		Dir dest = new Dir(this.homePath.path ~ repository.full);
+		chdir(dest.path);
+
+		//	Pokud soubor vůbec neexistuje, tak to je snadná práce.
+		if (! std.file.exists(getcwd() ~ "/.hg/hgrc")) {
+			this.doCreateDefaultHgrc();
+		}
+		else {
+			// @TODO
+		}
+
 		/*
 		//	Post Receive
 		postReceive = fullrepo . '/hooks/post-receive';
@@ -436,8 +444,20 @@ class Model : IAdapterModel
 			symlink(postUpdateTo, postUpdate);
 		}
 		//*/
+		chdir(oldcwd);
 	}
 
 
+
+	/**
+	 * Vytvoření defaultního hgrc
+	 */
+	private void doCreateDefaultHgrc()
+	{
+		std.process.system("echo '[ui]' >> .hg/hgrc");
+		std.process.system("echo 'username = Stasi' >> .hg/hgrc");
+		std.process.system("echo '[hooks]' >> .hg/hgrc");
+		std.process.system("echo 'changegroup.update = hg update' >> .hg/hgrc");
+	}
 
 }
