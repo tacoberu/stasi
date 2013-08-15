@@ -17,6 +17,4 @@
 
 - Přidání uživatele
 
-- Log oddělit do vendors. Mrknout se na haskel.alfarome
-- Pokud má uživatel patřičná práva, může on-demand vytvářet repozitáře. (Zkusí 
-poslat push do repozitáře, který neexistuje.)
+- Log oddělit do vendors. Mrknout se na haskel.
