@@ -31,3 +31,4 @@ auth - Ověření, zda má uživatel dostatečná práva.
 	stasi auth --repo stasi.git --user franta --access read
 
 
+A
