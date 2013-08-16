@@ -19,30 +19,23 @@
 namespace Taco\Tools\Stasi\Shell;
 
 
+
 /**
- * Zpracovává zdrojový rádek.
+ *	Odpověď jako JSON.
  */
-class SshAuthorizedKeysParser
+class Response implements ResponseInterface
 {
 
 
-	function parse($s)
+	/**
+	 *	Poslání na výstup.
+	 */
+	function fetch()
 	{
-		if (preg_match('~command=\"([^\"]+)\",([^\s]+)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+)~', $s, $out)) {
-			$command = $out[1];
-			$attribs = $out[2];
-			$sshtype = $out[3];
-			$publicKey = $out[4];
-			$email = $out[5];
-			if (preg_match('~--user\s+([^\s]+)~', $command, $out)) {
-				$user = $out[1];
-			}
-			$user = new AuthorizedKeysUser($user, $sshtype, $publicKey, $email);
-			$user->command = $command;
-			$user->attribs = $attribs;
-			return $user;
-		}
+		echo 'hmmm';
 	}
+
+
 
 
 }

@@ -66,7 +66,7 @@ class UserBank
 	/**
 	 *	Získat podle názvu.
 	 */
-	function getByName(AuthorizedKeysUser $entry)
+	function getByEntry(AuthorizedKeysUser $entry)
 	{
 		return $this->users[$entry->getId()];
 	}

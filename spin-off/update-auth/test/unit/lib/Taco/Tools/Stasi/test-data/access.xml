@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<st:stasi xmlns:st="urn:nermal/stasi"
+		xmlns:con="urn:nermal/contact">
+	<!--	
+		Skupina uživatelů
+		- ->
+	<st:group name="admins">
+		<st:user ref="taco" />
+		<st:user ref="mira" />
+	</st:group>
+
+	<st:group name="vyvojari">
+		<st:user ref="taco" />
+		<st:user ref="mira" />
+		<st:user ref="fean" />
+	</st:group>
+-->
+
+
+
+	<!--
+		Nastavení serveru.
+		-->
+	<st:setting>
+		<!--
+			Kde budou umístěny repozitáře.
+			-->
+		<st:repo-path>Development/lab/stasi</st:repo-path>
+		<!--
+			Kde budou umístěny pracovní prostory, když jsou potřeba.
+			-->
+		<st:working-path>Development/lab/working</st:working-path>
+
+		<!--
+			Možnost se přihlásit na server.
+			-->
+		<st:signin>
+			<st:user ref="mira" />
+			<st:group ref="admins" />
+		</st:signin>
+
+
+		<!--
+			Kdo smí vytvářet repozitáře.
+			-->
+		<st:init-repo>
+			<st:user ref="mira" />
+			<st:user ref="taco" />
+			<st:group ref="admins" />
+		</st:init-repo>
+
+	</st:setting>
+
+
+	<!--
+		Definice konkrétních uživatelů
+		-->
+	<st:user name="taco">
+		<con:firstname>Martin</con:firstname>
+		<con:lastname>Takáč</con:lastname>
+		<con:email>mt@darkmay.cz</con:email>
+		<st:ssh type="ssh-dss ">AAAAB3NzaC1kc3MAAACBAIX...PCoEtM6WGJWo5vxA==</st:ssh>
+
+
+		<!--
+			Existují celkem čtyři skupiny práv: 
+				R jen pro čtení, 
+				RW čtení i zápis, 
+				RW+ přidá mazání, 
+				– pro zákaz přístupu
+				shell: Může se přihlásit
+			-->
+		<st:access>
+			<st:permission>init</st:permission>
+			<st:permission>read</st:permission>
+			<st:permission>write</st:permission>
+			<st:permission>remove</st:permission>
+			<st:permission>sign-in</st:permission>
+		</st:access>		
+
+	</st:user>
+
+	<!--
+		Definice konkrétních uživatelů
+		-->
+	<st:user name="mira">
+		<con:email>mf@darkmay.cz</con:email>
+		<st:ssh type="ssh-dsa">AAAAB3NzaC1kc3MAAA9P+LORiZUed+0EVjgIPwzt/bLAsXk+Y...Q66tl5l6yXMPCoEtM6WGJWo5vxA==</st:ssh>
+		<st:access>
+			<st:permission>read</st:permission>
+			<st:permission>write</st:permission>
+			<st:permission>remove</st:permission>
+		</st:access>		
+
+	</st:user>
+
+	<!--
+		Definice konkrétních uživatelů
+		-->
+	<st:user name="fean">
+		<con:firstname>Andreaw</con:firstname>
+		<con:lastname>Fean</con:lastname>
+		<con:email>mt@darkmay.cz</con:email>
+		<st:ssh type="ssh-dsa"> AAAAB3NzaC1kc3MAAACBAIXclzahWltq96N5cz3Rftt2ZnsRi...Q66tl5l6yXMPCoEtM6WGJWo5vxA== </st:ssh>
+		<st:access>
+			<st:permission>read</st:permission>
+		</st:access>		
+
+	</st:user>
+
+
+	<!--
+		Nastavení serveru.
+		-->
+	<st:setting>
+		<st:repo-path>repository</st:repo-path>
+	</st:setting>
+
+
+</st:stasi>

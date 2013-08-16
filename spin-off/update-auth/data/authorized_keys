@@ -1,9 +1,12 @@
 # stasi start
-command="/usr/bin/stasi shell --user taco",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-dsa AAAAB3NzaC1kc3MAAACBA...l6yXMPCoEtM6WGJWo5vxA== mt@taco-beru.name
-command="/usr/bin/stasi shell --user mira",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-dsa AAAAB3NzaC1kc3MAAACBAIXclzahWltq96N5cz3Rf...6yXMPCoEtM6WGJWo5vxA== mf@taco-beru.name
+command="/usr/bin/stasi shell --user taco",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-dsa AAAAB3NzaC1kc3MAAACBA---l6yXMPCoEtM6WGJWo5vxA== mt@taco-beru.name
 ssh-dss AAAAB3NzaC1kc3MAAACBAIXclzahWltq96N5cz3Rftt2ZnsRic9P+LORiZUdr3ed+0EVjgIygr8PRfFjifGi37JPwzt/bLAsXk+Yo5rXFdlQyxFJMJHR7tjgYTyP6EtTuIqo2qgGYyz8f+Vun/AsS2ewbtJfXXDRQ23Wwkvyff6D3E+gK1otjZ2a6o4eKqlpAAAAFQD1r+q3a8h2dCe66YzLE9Dc87/KfwAAAIBHGll0FDBYj4hCYkchhrhBMQ7BoSiCPdEKG2VK9EW4JujOdgGo8PbF8z6wwxU5/MBxlpvlqdYRgkHtY/DMlQDTgdIDQxbI5e0ikIHBwhhqzvtYwhcapLjBIR1t3lVlKOCMgaQRTIOp2ykFyHQNT9cNhtXqsWqzMncHWTMsgbkarQAAAIBu2Nrjs7W/CpT8doR8wzQ7zISdSkwRAH+LqsaGTM2XtYJTymLVFEytiNPE55h+Rexo+OFI792KTuFTkUeKoACIopjgTZtoHqtEJZ5IxVsa2OqAsHbP6Svww+M76LbAvFMquYxyG954XI/D0jtQ66tl5l6yXMPCoEtM6WGJWo5vxA== taco@taco.darkmay.cz
+command="/usr/bin/stasi shell --user mira",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-dsa AAAAB3NzaC1kc3MAAACBAIXclzahWltq96N5cz3Rf---6yXMPCoEtM6WGJWo5vxA== mf@taco-beru.name
 # stasi end
 
 
-command="/usr/bin/stasi shell --user taco",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-dsa AAAAB3NzaA1kc3MAAACBAIX...66tl5l6yXMPCoEtM6WGJWo5vxA== mt@taco-beru.name
-command="/usr/bin/stasi shell --user fean",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-dsa AAAAB3NzaC1kc3MAAACBAIXcl...oEtM6WGJWo5vxA== mt@taco-beru.name
+command="/usr/bin/stasi shell --user taco",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-dsa AAAAB3NzaA1kc3MAAACBAIX---66tl5l6yXMPCoEtM6WGJWo5vxA== mt@taco-beru.name
+command="/usr/bin/stasi shell --user fean",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-dsa AAAAB3NzaC1kc3MAAACBAIXcl---oEtM6WGJWo5vxA== mt@taco-beru.name
+
+
+

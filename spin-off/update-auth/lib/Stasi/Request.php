@@ -19,35 +19,70 @@
 namespace Taco\Tools\Stasi\Shell;
 
 
-/**
- * Reprezentace jednoho řádku.
- */
-class AuthorizedKeysUser
-{
-	public $command;
-	public $attribs;
-	public $sshtype;
-	public $publicKey;
-	public $email;
-	public $user;
-	
-	function __construct($user, $sshtype, $publicKey, $email)
-	{
-		$this->user = $user;
-		$this->sshtype = $sshtype;
-		$this->publicKey = $publicKey;
-		$this->email = $email;
-	}
 
+/**
+ *	Přepravka.
+ */
+class Request
+{
+
+	/**
+	 * Uživatel, který posílá požadavek.
+	 */
+	private $user;
+
+	/**
+	 * Originální přžíkaz. O co se pokouší.
+	 */
+	private $command;
+	
 	
 	/**
-	 * Co budem používat jako Id.
-	 * @return string
+	 * Čteme, zapišujeme, ...
 	 */
-	public function getId()
+	private $access;
+
+
+	public function setUser($value)
 	{
-		return $this->sshtype . '|' . $this->publicKey;
+		$this->user = $value;
+		return $this;
 	}
+
+
+	public function getUser()
+	{
+		return $this->user;
+	}
+
+
+	public function setCommand($value)
+	{
+		$this->command = $value;
+		return $this;
+	}
+
+
+
+	public function getCommand()
+	{
+		return $this->command;
+	}
+
+
+	public function setAccess($value)
+	{
+		$this->access = $value;
+		return $this;
+	}
+
+
+
+	public function getAccess()
+	{
+		return $this->access;
+	}
+
 
 }
 

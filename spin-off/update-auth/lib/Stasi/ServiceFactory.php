@@ -29,11 +29,16 @@ class ServiceFactory
 	private $config;
 	
 	
+	private $command = '/usr/bin/stasi';
 	
 	
-	function __construct(ConfigReaderInterface $config)
+	
+	function __construct(ConfigReaderInterface $config, $command = Null)
 	{
 		$this->config = $config;
+		if ($command) {
+			$this->command = $command;
+		}
 	}
 
 
@@ -65,7 +70,7 @@ class ServiceFactory
 	 */
 	function getFormater()
 	{
-		$formater = new SshAuthorizedKeysFormater('/usr/bin/stasi');
+		$formater = new SshAuthorizedKeysFormater($this->command);
 		return $formater;
 	}
 
@@ -80,7 +85,12 @@ class ServiceFactory
 
 		foreach ($this->config->getUserList() as $user) {
 			foreach ($user->ssh as $ssh) {
-				$entry = new AuthorizedKeysUser($user->ident, $ssh->type, $ssh->key, $user->email);
+				try {
+					$entry = new AuthorizedKeysUser($user->ident, $ssh->type, $ssh->key, $user->email);
+				}
+				catch (\InvalidArgumentException $e) {
+					throw new \RuntimeException('Fill bank failed, because: ' . $e->getMessage(), 2, $e);
+				}
 				$bank->add($entry);
 			}
 		}

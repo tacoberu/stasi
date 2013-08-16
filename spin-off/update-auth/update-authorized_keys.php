@@ -15,13 +15,13 @@
  * @author     Martin Takáč <taco@taco-beru.name>
  */
 
-require_once __dir__ . '/libs/ConfigReaderInterface.php';
-require_once __dir__ . '/libs/ConfigXmlReader.php';
-require_once __dir__ . '/libs/AuthorizedKeysUser.php';
-require_once __dir__ . '/libs/SshAuthorizedKeysParser.php';
-require_once __dir__ . '/libs/SshAuthorizedKeysFormater.php';
-require_once __dir__ . '/libs/UserBank.php';
-require_once __dir__ . '/libs/ServiceFactory.php';
+require_once __dir__ . '/lib/Stasi/ConfigReaderInterface.php';
+require_once __dir__ . '/lib/Stasi/ConfigReaderXml.php';
+require_once __dir__ . '/lib/Stasi/AuthorizedKeysUser.php';
+require_once __dir__ . '/lib/Stasi/SshAuthorizedKeysParser.php';
+require_once __dir__ . '/lib/Stasi/SshAuthorizedKeysFormater.php';
+require_once __dir__ . '/lib/Stasi/UserBank.php';
+require_once __dir__ . '/lib/Stasi/ServiceFactory.php';
 
 
 
@@ -45,7 +45,7 @@ try {
 		throw new \RuntimeException('Invalid second args - [' . $argv[2] . '] not found.');
 	}
 
-	$config = new Shell\ConfigXmlReader($argv[2]);
+	$config = new Shell\ConfigReaderXml($argv[2]);
 	$factory = new Shell\ServiceFactory($config);
 
 
@@ -70,20 +70,25 @@ try {
 	
 		//	start with command 
 		if (substr($row, 0, 7) == 'command') {
-			$entry = $factory->getParser()->parse($row);
-			switch($bank->check($entry)) {
-				case $bank::CHECK_CORRECT:
-					$missing[] = $entry;
-					break;
-				case $bank::CHECK_DIFFERENT:
-					$content[$line] = $factory->getFormater()->format($bank->getByEntry($entry));
-					$missing[] = $entry;
-					break;
-				case $bank::CHECK_EMPTY:
-					unset($content[$line]);
-					break;
-				default:
-					throw \LogicException('Unkow key of checkin');
+			try {
+				$entry = $factory->getParser()->parse($row);
+				switch($bank->check($entry)) {
+					case $bank::CHECK_CORRECT:
+						$missing[] = $entry;
+						break;
+					case $bank::CHECK_DIFFERENT:
+						$content[$line] = $factory->getFormater()->format($bank->getByEntry($entry));
+						$missing[] = $entry;
+						break;
+					case $bank::CHECK_EMPTY:
+						unset($content[$line]);
+						break;
+					default:
+						throw \LogicException('Unkow key of checkin');
+				}
+			}
+			catch (\RuntimeException $e) {
+				throw new \RuntimeException('Invalid file [' . $argv[1] . '] in line: ' . $line . ', ' . $e->getMessage(), 3, $e);
 			}
 		}
 	}

@@ -23,7 +23,7 @@ namespace Taco\Tools\Stasi\Shell;
  * Čistě čtení xml souboru s uloženou konfigurací. Nijak nezohlednuje nastavení
  * předané skrze příkazovou řádku, nebo tak něco.
  */
-class ConfigXmlReader implements ConfigReaderInterface
+class ConfigReaderXml implements ConfigReaderInterface
 {
 
 	/**
@@ -64,10 +64,10 @@ class ConfigXmlReader implements ConfigReaderInterface
 			$node->registerXPathNamespace('contact', 'urn:nermal/contact');
 
 			$entry = (object) array (
-					'ident' => (string)$node['name'],
-					'firstname' => self::xmlContent($node, 'contact:firstname'),
-					'lastname' => self::xmlContent($node, 'contact:lastname'),
-					'email' => self::xmlContent($node, 'contact:email'),
+					'ident' => trim((string)$node['name']),
+					'firstname' => trim(self::xmlContent($node, 'contact:firstname')),
+					'lastname' => trim(self::xmlContent($node, 'contact:lastname')),
+					'email' => trim(self::xmlContent($node, 'contact:email')),
 					'permission' => array(),
 					'ssh' => array(),
 					);
@@ -96,7 +96,7 @@ class ConfigXmlReader implements ConfigReaderInterface
 		$source = $this->getSource();
 		$path = $source->xpath('stasi:setting/stasi:repo-path');
 		if (isset($path[0])) {
-			return (string)$path[0];
+			return trim((string)$path[0]);
 		}
 		throw new \RuntimeException('repo-path not setting');
 	}
@@ -144,8 +144,8 @@ class ConfigXmlReader implements ConfigReaderInterface
 	private static function buildSsh($node)
 	{
 		return (object) array(
-				'type' => (string)$node['type'],
-				'key' => (string)$node,
+				'type' => trim((string)$node['type']),
+				'key' => trim((string)$node),
 				);
 	}
 

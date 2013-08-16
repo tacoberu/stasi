@@ -63,23 +63,23 @@
 		<c:firstname>Martin</c:firstname>
 		<c:lastname>Takáč</c:lastname>
 		<c:email>mt@taco-beru.name</c:email>
-		<s:ssh type="ssh-dsa">AAAAB3NzaC1kc3MAAACBA...l6yXMPCoEtM6WGJWo5vxA==</s:ssh>
-		<s:ssh type="ssh-dsa">AAAAB3NzaA1kc3MAAACBAIX...66tl5l6yXMPCoEtM6WGJWo5vxA==</s:ssh>
-<!--		<s:ssh type="ssh-rsa">A1AAB3NzaA1kc3MAAACBAIX...66tl5l6yXMPCoEtM6WGJWo5vxA==</s:ssh>-->
+		<s:ssh type="ssh-dsa">AAAAB3NzaC1kc3MAAACBA---l6yXMPCoEtM6WGJWo5vxA==</s:ssh>
+		<s:ssh type="ssh-dsa">AAAAB3NzaA1kc3MAAACBAIX---66tl5l6yXMPCoEtM6WGJWo5vxA==</s:ssh>
+<!--		<s:ssh type="ssh-rsa">A1AAB3NzaA1kc3MAAACBAIX- - -66tl5l6yXMPCoEtM6WGJWo5vxA==</s:ssh>-->
 	</s:user>
 
 	<s:user name="mira">
 		<c:firstname>Miroslav</c:firstname>
 		<c:lastname>Falco</c:lastname>
 		<c:email>mf@taco-beru.name</c:email>
-		<s:ssh type="ssh-dsa">AAAAB3NzaC1kc3MAAACBAIXclzahWltq96N5cz3Rf...6yXMPCoEtM6WGJWo5vxA==</s:ssh>
+		<s:ssh type="ssh-dsa">  AAAAB3NzaC1kc3MAAACBAIXclzahWltq96N5cz3Rf---6yXMPCoEtM6WGJWo5vxA==</s:ssh>
 	</s:user>
 
 	<s:user name="fean">
 		<c:firstname>Andreaw</c:firstname>
 		<c:lastname>Fean</c:lastname>
 		<c:email>mt@taco-beru.name</c:email>
-		<s:ssh type="ssh-dsa">AAAAB3NzaC1kc3MAAACBAIXcl...oEtM6WGJWo5vxA==</s:ssh>
+		<s:ssh type="ssh-dsa">AAAAB3NzaC1kc3MAAACBAIXcl---oEtM6WGJWo5vxA==</s:ssh>
 	</s:user>
 
 	<s:user name="michal">
