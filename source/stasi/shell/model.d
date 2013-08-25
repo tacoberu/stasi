@@ -1,17 +1,14 @@
 /**
- * Copyright (c) 2004, 2011 Martin Takáč
+ * This file is part of the Taco Projects.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * Copyright (c) 2004, 2013 Martin Takáč (http://martin.takac.name)
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * For the full copyright and license information, please view
+ * the file LICENCE that was distributed with this source code.
  *
- * @author     Martin Takáč <taco@taco-beru.name>
+ * PHP version 5.3
+ *
+ * @author     Martin Takáč (martin@takac.name)
  */
 
 
@@ -83,15 +80,15 @@ interface IModelBuilder
 /**
  *	Továrna na modely.
  */
-class ModelBuilder : IModelBuilder 
+class ModelBuilder : IModelBuilder
 {
 
 	/**
 	 * Nastavení aplikace, práv, uživatelů, repozitářů.
 	 */
 	private Config _config;
-	
-	
+
+
 	/**
 	 * Podrobné zaznamenávávní toho, co se děje.
 	 */
@@ -145,7 +142,7 @@ class ModelBuilder : IModelBuilder
 	{
 		string s = cast(string)std.file.read(this.config.configFile);
 		this.logger.info(format("load file: [%s]", this.config.configFile), "configuration");
-		
+
 		IConfigReader reader = new ConfigXmlReader(s);
 		this._config = reader.fill(this.config);
 
@@ -196,13 +193,13 @@ class Application : IModel
 	 * Cesta k defaultnímu umístění repozitářů.
 	 */
 	Dir defaultRepositoryPath;
-	
-	
+
+
 	/**
 	 * Cesta k defaultnímu umístění pískoviště repozitářů.
 	 */
 	Dir defaultWorkingPath;
-	
+
 
 	/**
 	 * Cesta k domácímu adresáři.
@@ -229,7 +226,7 @@ class Application : IModel
 
 
 	/**
-	 *	
+	 *
 	 */
 	this(Dir homePath)
 	{
@@ -379,7 +376,7 @@ class Application : IModel
 	void doExistRepository(Repository repo, RepositoryType type)
 	{
 		string dest = this.homePath.path ~ repo.full;
-		
+
 		//	Existence souboru
 		if (! std.file.exists(dest)) {
 			this.getAdapterModel(repo, type).doCreateRepository(repo);
@@ -545,8 +542,8 @@ class Repository
 		}
 		return this.name;
 	}
-	
-	
+
+
 	string toString()
 	{
 		return format("%s, %s, full:[%s]", this.name, this.type, this.full);
@@ -578,7 +575,7 @@ unittest {
 
 
 /**
- * Přístup k repozitáři. Komu se tento objekt přiřadí, ten má taková prava 
+ * Přístup k repozitáři. Komu se tento objekt přiřadí, ten má taková prava
  * k takovému repozitáři.
  */
 class AccessRepository
@@ -617,7 +614,7 @@ enum Permission
 	READ = 2,
 	WRITE = 4,
 	REMOVE = 8
-	
+
 }
 
 
@@ -665,7 +662,7 @@ interface IAdapterModel
 	 * Vytvoření repozitáře.
 	 * Git křičí, když je vytvořený prázdný repozitář. Proto tam hodíme první komit.
 	 * Také je potřeba nastavit git, aby přijímal příchozí commity.
-	 * 
+	 *
 	 * Ono to také může bejt tak, že chceme přiřadit již exustující repozitář. To pak musím udělat jinak. @TODO
 	 */
 	void doCreateRepository(Repository repo);

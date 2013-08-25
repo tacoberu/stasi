@@ -1,17 +1,14 @@
 /**
- * Copyright (c) 2004, 2011 Martin Takáč
+ * This file is part of the Taco Projects.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * Copyright (c) 2004, 2013 Martin Takáč (http://martin.takac.name)
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * For the full copyright and license information, please view
+ * the file LICENCE that was distributed with this source code.
  *
- * @author     Martin Takáč <taco@taco-beru.name>
+ * PHP version 5.3
+ *
+ * @author     Martin Takáč (martin@takac.name)
  */
 
 
@@ -202,7 +199,7 @@ class Command : AbstractCommand
 	{
 		Permission perm = this.makePermission(cmd);
 		if (! this.model.isAllowed(new User(request.user), repo, perm)) {
-			//	Rozlišujeme tu jen vytváření, možností přístupu. Read nebo 
+			//	Rozlišujeme tu jen vytváření, možností přístupu. Read nebo
 			//	Write musí řešit hooky. Jinak to neumím.
 			switch (perm) {
 				case Permission.INIT:
@@ -227,7 +224,7 @@ class Command : AbstractCommand
 		if (0 == indexOf(cmd, CMD_INIT)) {
 			return Permission.INIT;
 		}
-		
+
 		//	Nejnižší je čtení.
 		return Permission.READ;
 	}
@@ -313,7 +310,7 @@ unittest {
 	Repository repo = new Repository("stasi.hg", RepositoryType.MERCURIAL);
 	repo.path = new Dir("foo/doo");
 	model.repositories ~= repo;
-	
+
 	Command cmd = new Command(model);
 	IResponse response = cmd.createResponse(request);
 	try {
@@ -340,14 +337,14 @@ unittest {
 	//	Uživatel
 	User user = new User("franta");
 	model.users ~= user;
-	
+
 	//	ACL
 	Permission perm = Permission.DENY | Permission.READ | Permission.WRITE;
 	user.repositories[repo.name] = new AccessRepository(
 			repo.name,
-			repo.type, 
+			repo.type,
 			perm);
-	
+
 	//	Příkaz
 	Command cmd = new Command(model);
 	IResponse response = cmd.createResponse(request);
@@ -371,7 +368,7 @@ class Model : IAdapterModel
 
 
 	/**
-	 *	
+	 *
 	 */
 	this(Dir homePath)
 	{
@@ -385,11 +382,11 @@ class Model : IAdapterModel
 	void doCreateRepository(Repository repository)
 	{
 		string oldcwd = getcwd();
-		
+
 		Dir dest = new Dir(this.homePath.path ~ repository.full);
 		std.process.system(format("mkdir -p %s", dest.path));
 		chdir(dest.path);
-		
+
 		//	Vytvoření a inicializace.
 		std.process.system("hg init > /dev/null");
 		this.doCreateDefaultHgrc();

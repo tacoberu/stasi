@@ -1,18 +1,15 @@
 <?php
 /**
- * Copyright (c) 2004, 2011 Martin Takáč
+ * This file is part of the Taco Projects.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * Copyright (c) 2004, 2013 Martin Takáč (http://martin.takac.name)
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * For the full copyright and license information, please view
+ * the file LICENCE that was distributed with this source code.
  *
- * @author     Martin Takáč <taco@taco-beru.name>
+ * PHP version 5.3
+ *
+ * @author     Martin Takáč (martin@takac.name)
  */
 
 
@@ -28,13 +25,13 @@ class Application
 {
 
 	private $acl;
-	
+
 
 	private $repositoryPath;
-	
+
 
 	private $homePath;
-	
+
 
 	/**
 	 * Oprávnění.
@@ -114,7 +111,7 @@ class Application
 		if (! is_writable($full)) {
 			throw new \RuntimeException("Repo [$repo] is not exists.");
 		}
-		
+
 		switch($type) {
 			case 'git':
 				$this->doNormalizeAssignHooksGit($full);
@@ -136,22 +133,21 @@ class Application
 		if (file_exists($postReceive) && (! is_link($postReceive) || readlink($postReceive) != $postReceiveTo)) {
 			rename($postReceive, $postReceive . '-original');
 		}
-		
+
 		if (! file_exists($postReceive)) {
 			symlink($postReceiveTo, $postReceive);
 		}
-		
+
 		//	Post Update
 		$postUpdate = $fullrepo . '/hooks/post-update';
 		$postUpdateTo = realpath(__dir__ . '/../../../../bin/git-hooks/post-update');
 		if (file_exists($postUpdate) && (! is_link($postUpdate) || readlink($postUpdate) != $postUpdateTo)) {
 			rename($postUpdate, $postUpdate . '-original');
 		}
-		
+
 		if (! file_exists($postUpdate)) {
 			symlink($postUpdateTo, $postUpdate);
 		}
 	}
 
 }
-

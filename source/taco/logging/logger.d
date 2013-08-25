@@ -1,17 +1,14 @@
 /**
- * Copyright (c) 2004, 2011 Martin Takáč
+ * This file is part of the Taco Projects.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * Copyright (c) 2004, 2013 Martin Takáč (http://martin.takac.name)
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * For the full copyright and license information, please view
+ * the file LICENCE that was distributed with this source code.
  *
- * @author     Martin Takáč <taco@taco-beru.name>
+ * PHP version 5.3
+ *
+ * @author     Martin Takáč (martin@takac.name)
  */
 
 /**
@@ -35,7 +32,6 @@ enum Level
 	LOG,
 	DEBUG,
 	TRACE
-
 }
 
 
@@ -428,7 +424,7 @@ abstract class AbstractWriter : IWriter
 		s = replace(s, regex(r"" ~ this.PLACE_TYPE, "g"), std.string.format("%10.10s", type));
 		s = replace(s, regex(r"" ~ this.PLACE_DATETIME, "g"), std.string.format("%-27s", Clock.currTime().toISOExtString()));
 		s ~= this.sepparator;
-		
+
 		return s;
 	}
 
@@ -506,13 +502,13 @@ class OutputWriter : AbstractWriter
  */
 class FileWriter : AbstractWriter
 {
-	
+
 	const DEFAULT_FORMAT = "[" ~ this.PLACE_DATETIME ~ "] [" ~ this.PLACE_LEVEL ~ "] " ~ this.PLACE_MESSAGE;
-	
-	
+
+
 	private File file;
-	
-	
+
+
 	/**
 	 * Definice podmínky.
 	 */

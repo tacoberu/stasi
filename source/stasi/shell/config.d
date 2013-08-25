@@ -1,17 +1,14 @@
 /**
- * Copyright (c) 2004, 2011 Martin Takáč
+ * This file is part of the Taco Projects.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * Copyright (c) 2004, 2013 Martin Takáč (http://martin.takac.name)
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * For the full copyright and license information, please view
+ * the file LICENCE that was distributed with this source code.
  *
- * @author     Martin Takáč <taco@taco-beru.name>
+ * PHP version 5.3
+ *
+ * @author     Martin Takáč (martin@takac.name)
  */
 
 module stasi.config;
@@ -77,7 +74,7 @@ class Config
 	 */
 	Dir defaultRepositoryPath;
 
-	
+
 	/**
 	 * Kam se budou defaultně checkoutovat repozitáře.
 	 */
@@ -266,7 +263,7 @@ class ConfigXmlReader : IConfigReader
 			xml.onStartTag[nsstaci ~ "repository"] = (ElementParser xml)
 			{
 				Repository repo;
-				
+
 				if (("name" in xml.tag.attr) && ("type" in xml.tag.attr)) {
 					repo = new Repository(xml.tag.attr["name"], this.parseRepositoryType(xml.tag.attr["type"]));
 					repo.path = config.defaultRepositoryPath;
@@ -285,7 +282,7 @@ class ConfigXmlReader : IConfigReader
 				};
 
 				config.repositories[xml.tag.attr["name"]] = repo;
-				
+
 				xml.parse();
 			};
 
@@ -367,7 +364,7 @@ class ConfigXmlReader : IConfigReader
 		catch (std.xml.CheckException e) {
 			throw new InvalidConfigException(std.string.format("Invalid xml format: %s.", split(e.toString(), "\n")));
 		}
-		
+
 		return config;
 	}
 
@@ -381,7 +378,7 @@ unittest {
 	<s:setting>
 		<s:repo-path>Development/lab/stasi</s:repo-path>
 		<s:working-path>Development/lab/working</s:working-path>
-	</s:setting>		
+	</s:setting>
 
 	<s:user name=\"taco\">
 		<c:email>mt@taco-beru.name</c:email>
@@ -434,7 +431,7 @@ unittest {
 	<s:setting>
 		<s:repo-path>std/repos/</s:repo-path>
 		<s:working-path>std/working</s:working-path>
-	</s:setting>		
+	</s:setting>
 
 
 	<!--

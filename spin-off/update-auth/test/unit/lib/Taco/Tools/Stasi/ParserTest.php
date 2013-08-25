@@ -1,19 +1,15 @@
 <?php
-
 /**
- * Copyright (c) 2004, 2011 Martin Takáč
+ * This file is part of the Taco Projects.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * Copyright (c) 2004, 2013 Martin Takáč (http://martin.takac.name)
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * For the full copyright and license information, please view
+ * the file LICENCE that was distributed with this source code.
  *
- * @author     Martin Takáč <taco@taco-beru.name>
+ * PHP version 5.3
+ *
+ * @author     Martin Takáč (martin@takac.name)
  */
 
 
@@ -35,11 +31,11 @@ class tests_libs_taco_tools_Stasi_Shell_ParserTest extends PHPUnit_Framework_Tes
 
 
 	private $parser;
-	
-	
+
+
 
 	/**
-	 * @param 
+	 * @param
 	 * @return ...
 	 */
 	public function setUp()
@@ -59,7 +55,7 @@ class tests_libs_taco_tools_Stasi_Shell_ParserTest extends PHPUnit_Framework_Tes
 		$request = new Shell\Request();
 		$request->setUser('foo');
 		$request->setCommand("ls -la");
-		
+
 		$adapter = $this->parser->parse($request);
 		$this->assertNull($adapter);
 	}
@@ -67,14 +63,14 @@ class tests_libs_taco_tools_Stasi_Shell_ParserTest extends PHPUnit_Framework_Tes
 
 
 	/**
-	 *	
+	 *
 	 */
 	public function testGitUploadPack()
 	{
 		$request = new Shell\Request();
 		$request->setUser('foo');
 		$request->setCommand("git-upload-pack 'projects/stasi.git'");
-		
+
 		$adapter = $this->parser->parse($request);
 
 		$this->assertInstanceOf('Taco\Tools\Stasi\Shell\ParserGit', $adapter);
@@ -84,14 +80,14 @@ class tests_libs_taco_tools_Stasi_Shell_ParserTest extends PHPUnit_Framework_Tes
 
 
 	/**
-	 *	
+	 *
 	 */
 	public function testGitArchivePack()
 	{
 		$request = new Shell\Request();
 		$request->setUser('foo');
 		$request->setCommand("git-upload-archive 'projects/stasi.git'");
-		
+
 		$adapter = $this->parser->parse($request);
 
 		$this->assertInstanceOf('Taco\Tools\Stasi\Shell\ParserGit', $adapter);
@@ -101,14 +97,14 @@ class tests_libs_taco_tools_Stasi_Shell_ParserTest extends PHPUnit_Framework_Tes
 
 
 	/**
-	 *	
+	 *
 	 */
 	public function testGitReceivePack()
 	{
 		$request = new Shell\Request();
 		$request->setUser('foo');
 		$request->setCommand("git-receive-pack 'projects/stasi.git'");
-		
+
 		$adapter = $this->parser->parse($request);
 
 		$this->assertInstanceOf('Taco\Tools\Stasi\Shell\ParserGit', $adapter);
@@ -126,7 +122,7 @@ class tests_libs_taco_tools_Stasi_Shell_ParserTest extends PHPUnit_Framework_Tes
 		$request = new Shell\Request();
 		$request->setUser('foo');
 		$request->setCommand("hg init projects/test.hg");
-		
+
 		$adapter = $this->parser->parse($request);
 
 		$this->assertInstanceOf('Taco\Tools\Stasi\Shell\ParserMercurial', $adapter);
@@ -144,7 +140,7 @@ class tests_libs_taco_tools_Stasi_Shell_ParserTest extends PHPUnit_Framework_Tes
 		$request = new Shell\Request();
 		$request->setUser('foo');
 		$request->setCommand("hg -R projects/test.hg serve --stdio");
-		
+
 		$adapter = $this->parser->parse($request);
 
 		$this->assertInstanceOf('Taco\Tools\Stasi\Shell\ParserMercurial', $adapter);

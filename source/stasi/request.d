@@ -1,18 +1,16 @@
 /**
- * Copyright (c) 2004, 2011 Martin Takáč
+ * This file is part of the Taco Projects.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+ * Copyright (c) 2004, 2013 Martin Takáč (http://martin.takac.name)
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * For the full copyright and license information, please view
+ * the file LICENCE that was distributed with this source code.
  *
- * @author     Martin Takáč <taco@taco-beru.name>
+ * PHP version 5.3
+ *
+ * @author     Martin Takáč (martin@takac.name)
  */
+
 
 
 module stasi.request;
@@ -36,7 +34,7 @@ enum Action {
 
 
 /**
- * Konfigurace programu. Obsahuje informace převzaté z příkazové řádky, 
+ * Konfigurace programu. Obsahuje informace převzaté z příkazové řádky,
  * a některé informace prostředí.
  */
 class Request
@@ -108,25 +106,25 @@ class Request
 		return this._homePath;
 	}
 
-	
-	
+
+
 	@property string command()
 	{
 		return this._command;
 	}
 
-	
-	
+
+
 	@property string configFile()
 	{
 		return this._configFile;
 	}
 
-	
-	
+
+
 	string toString()
 	{
-		return format("request: action=[%s], user=[%s], command=[%s], home=[%s], config=[%s]", 
+		return format("request: action=[%s], user=[%s], command=[%s], home=[%s], config=[%s]",
 				formatAction(this.action),
 				this.user,
 				this.command,
@@ -192,9 +190,9 @@ class Request
 			}
 		}
 	}
-	
-	
-	
+
+
+
 	/**
 	 * naplnění zajímavých údajů z prostředí.
 	 */
@@ -203,7 +201,7 @@ class Request
 		if ("SSH_ORIGINAL_COMMAND" in env) {
 			this._command = env["SSH_ORIGINAL_COMMAND"];
 		}
-		
+
 		if ("HOME" in env) {
 			this._homePath = new Dir(env["HOME"]);
 		}
