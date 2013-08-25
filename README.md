@@ -1,31 +1,36 @@
 stasi
 =====
 
+Status BETA. Don't using!
+
 SSH shell like Gitolite for git and mercurial.
 
 
-Use:
-====
+## Use:
 
 shell - running command from SSH_ORIGINAL_COMMAND
-	$ env SSH_ORIGINAL_COMMAND="git-upload-pack 'stasi.git'" build/stasi shell --user franta
-	$ env SSH_ORIGINAL_COMMAND="ls -la" build/stasi shell --user franta
+
+    $ env SSH_ORIGINAL_COMMAND="git-upload-pack 'stasi.git'" build/stasi shell --user franta
+    $ env SSH_ORIGINAL_COMMAND="ls -la" build/stasi shell --user franta
 
 
 verify-config - check syntax of configuration
-	$ stasi verify-config --config config.xml
+
+    $ stasi verify-config --config config.xml
 
 
 version - print version of stasi.
-	$ stasi version
+
+    $ stasi version
 
 
 auth - Athorization of user's permission. Access allowed or denied.
-	$ stasi auth --repo stasi.git --user franta --access read
+
+    $ stasi auth --repo stasi.git --user franta --access read
 
 
 auth-update - Updated authorized_keys by config.xml.
-	comming soon
+- comming soon
 
 
 
