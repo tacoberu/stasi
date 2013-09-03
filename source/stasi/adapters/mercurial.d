@@ -21,6 +21,7 @@ import stasi.commands;
 import stasi.responses;
 import stasi.authentification;
 
+import taco.logging;
 import taco.utils;
 
 import std.stdio;
@@ -179,7 +180,12 @@ class Command : AbstractCommand
 		//	- je bare
 		//	- má nastavené defaultní hooky
 		//	- ...
-//		this.model.doExistRepository(repo, RepositoryType.MERCURIAL);
+		Permission perm = this.makePermission(maskedCommand);
+		if (this.model.isAllowed(new User(request.user), repo, Permission.INIT)) {
+			this.model.doExistRepository(repo, RepositoryType.MERCURIAL);
+		}
+
+		//	Každý povolený přístup může opravovat repozitář - kouzelné on-demand
 		this.model.doNormalizeRepository(repo, RepositoryType.MERCURIAL);
 
 		//	Výstup
@@ -245,14 +251,14 @@ class Command : AbstractCommand
 		if (0 == indexOf(cmd, CMD_INIT)) {
 			s = cmd[CMD_INIT.length .. $];
 			s = s.strip();
-			return format("%s %s%s", CMD_INIT, repository.path.path, s);
+			return format("%s %s%s", CMD_INIT, this.model.homePath.path ~ repository.path.path, s);
 		}
 		long i;
 		if ((0 == indexOf(cmd, CMD_SERVER_START))
 				&& ((i = lastIndexOf(cmd, CMD_SERVER_END)) + CMD_SERVER_END.length) == cmd.length) {
 			s = cmd[CMD_SERVER_START.length .. i];
 			s = s.strip();
-			return format("%s %s%s %s", CMD_SERVER_START, repository.path.path, s, CMD_SERVER_END);
+			return format("%s %s%s %s", CMD_SERVER_START, this.model.homePath.path ~ repository.path.path, s, CMD_SERVER_END);
 		}
 		return cmd;
 	}
@@ -349,7 +355,7 @@ unittest {
 	Command cmd = new Command(model);
 	IResponse response = cmd.createResponse(request);
 	response = cmd.fetch(request, response);
-	assert(response.toString() == "cmd:[hg -R foo/doo/stasi.hg serve --stdio]", response.toString());
+	assert(response.toString() == "cmd:[hg -R temp/foo/doo/stasi.hg serve --stdio]", response.toString());
 }
 
 
@@ -368,6 +374,12 @@ class Model : IAdapterModel
 
 
 	/**
+	 * Logovadla.
+	 */
+	private ILogger _logger;
+
+
+	/**
 	 *
 	 */
 	this(Dir homePath)
@@ -376,16 +388,60 @@ class Model : IAdapterModel
 	}
 
 
+
+	/**
+	 * Přiřazení logovadla.
+	 */
+	@property Model logger(ILogger logger)
+	{
+		if (! logger) {
+			throw new NullException("Not set null.");
+		}
+		this._logger = logger;
+		return this;
+	}
+
+
+
+	/**
+	 * Získání loggeru, nového, nebo oposledně vytvořeneého.
+	 */
+	@property ILogger logger()
+	{
+		if (! this._logger) {
+			this._logger = this.createLogger();
+		}
+		return this._logger;
+	}
+
+
+	/**
+	 * Vytvoření nového loggeru.
+	 */
+	ILogger createLogger()
+	{
+		return new Logger();
+	}
+
+
 	/**
 	 * Vytvoření repozitáře.
 	 */
 	void doCreateRepository(Repository repository)
 	{
+		string full = this.homePath.path ~ repository.full;
+
+		if (std.file.exists(full ~ "/.hg")) {
+			return;
+		}
+
+		this.logger.log("nazdar", "model");
 		string oldcwd = getcwd();
 
-		Dir dest = new Dir(this.homePath.path ~ repository.full);
-		std.process.system(format("mkdir -p %s", dest.path));
-		chdir(dest.path);
+//		Dir dest = new Dir(this.homePath.path ~ repository.full);
+		this.logger.trace(format("mkdir -p %s (create)", full), "model");
+		std.process.system(format("mkdir -p %s", full));
+		chdir(full);
 
 		//	Vytvoření a inicializace.
 		std.process.system("hg init > /dev/null");
@@ -407,8 +463,10 @@ class Model : IAdapterModel
 	void doNormalizeRepository(Repository repository)
 	{
 		string oldcwd = getcwd();
-		Dir dest = new Dir(this.homePath.path ~ repository.full);
-		chdir(dest.path);
+		string full = this.homePath.path ~ repository.full;
+		this.logger.trace(format("mkdir -p %s (normalize)", full), "model");
+		std.process.system(format("mkdir -p %s", full));
+		chdir(full);
 
 		//	Pokud soubor vůbec neexistuje, tak to je snadná práce.
 		if (! std.file.exists(getcwd() ~ "/.hg/hgrc")) {

@@ -21,6 +21,7 @@ import stasi.commands;
 import stasi.responses;
 import stasi.authentification;
 
+import taco.logging;
 import taco.utils;
 
 import std.stdio;
@@ -373,6 +374,12 @@ class Model : IAdapterModel
 
 
 	/**
+	 * Logovadla.
+	 */
+	private ILogger _logger;
+
+
+	/**
 	 *
 	 */
 	this(Dir homePath)
@@ -380,6 +387,41 @@ class Model : IAdapterModel
 		this.homePath = homePath;
 	}
 
+
+
+	/**
+	 * Přiřazení logovadla.
+	 */
+	@property Model logger(ILogger logger)
+	{
+		if (! logger) {
+			throw new NullException("Not set null.");
+		}
+		this._logger = logger;
+		return this;
+	}
+
+
+
+	/**
+	 * Získání loggeru, nového, nebo oposledně vytvořeneého.
+	 */
+	@property ILogger logger()
+	{
+		if (! this._logger) {
+			this._logger = this.createLogger();
+		}
+		return this._logger;
+	}
+
+
+	/**
+	 * Vytvoření nového loggeru.
+	 */
+	ILogger createLogger()
+	{
+		return new Logger();
+	}
 
 
 	/**
@@ -391,11 +433,15 @@ class Model : IAdapterModel
 	 */
 	void doCreateRepository(Repository repository)
 	{
+		string full = this.homePath.path ~ repository.full;
+
+		if (std.file.exists(full ~ "/.git")) {
+			return;
+		}
 		string oldcwd = getcwd();
 
-		string full = this.homePath.path ~ repository.full;
+		this.logger.trace(format("mkdir -p %s", full), "model");
 		std.process.system(format("mkdir -p %s", full));
-
 		chdir(full);
 
 		//	Vytvoření a inicializace.

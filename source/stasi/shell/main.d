@@ -59,7 +59,7 @@ int main(string[] args)
 				);
 	}
 	catch (Exception e) {
-		stderr.writefln("[fatal] (Staci): cannot initialize - %s", e.msg);
+		stderr.writefln("[fatal] (Stasi): cannot initialize - %s", e.msg);
 		return 1;
 	}
 
@@ -76,12 +76,12 @@ int main(string[] args)
 		return ret;
 	}
 	catch (auth.UserException e) {
-		stderr.writefln("[fatal] (Staci): %s", e.msg ? e.msg : e.classinfo.name);
+		stderr.writefln("[fatal] (Stasi): %s", e.msg ? e.msg : e.classinfo.name);
 		logger.warn((e.msg ? e.msg : e.classinfo.name),	"auth");
 		return 2;
 	}
 	catch (Exception e) {
-		stderr.writefln("[fatal] (Staci): %s", e.msg ? e.msg : e.classinfo.name);
+		stderr.writefln("[fatal] (Stasi): %s", e.msg ? e.msg : e.classinfo.name);
 		logger.warn(std.string.format("MSG: %s\nFILE: %s\nLINE: %d\nTRACE:\n%s\n--------------------------------\n",
 						(e.msg ? e.msg : e.classinfo.name),
 						e.file,

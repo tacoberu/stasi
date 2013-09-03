@@ -375,12 +375,7 @@ class Application : IModel
 	 */
 	void doExistRepository(Repository repo, RepositoryType type)
 	{
-		string dest = this.homePath.path ~ repo.full;
-
-		//	Existence souboru
-		if (! std.file.exists(dest)) {
-			this.getAdapterModel(repo, type).doCreateRepository(repo);
-		}
+		this.getAdapterModel(repo, type).doCreateRepository(repo);
 	}
 
 
@@ -403,14 +398,20 @@ class Application : IModel
 	 */
 	private IAdapterModel getAdapterModel(Repository repo, RepositoryType type)
 	{
+		IAdapterModel model;
+		
 		final switch(type) {
 			case RepositoryType.GIT:
-				return new stasi.adapters.git.Model(this.homePath);
+				model = new stasi.adapters.git.Model(this.homePath);
+				break;
 			case RepositoryType.MERCURIAL:
-				return new stasi.adapters.mercurial.Model(this.homePath);
+				model = new stasi.adapters.mercurial.Model(this.homePath);
+				break;
 			case RepositoryType.UNKNOW:
 				throw new Exception(format("Unknow type repository and not exists: [%s]", repo));
 		}
+		model.logger = this.logger;
+		return model;
 	}
 
 
@@ -673,6 +674,19 @@ interface IAdapterModel
 	 * Zohlední změněné hooky v repozitáři.
 	 */
 	void doNormalizeRepository(Repository repo);
+
+
+
+	/**
+	 * Umožnuje přiřazení loggeru.
+	 */
+	@property IAdapterModel logger(ILogger logger);
+
+
+	/**
+	 * Umožnuje přistupovat k loggeru.
+	 */
+	@property ILogger logger();
 
 
 }
