@@ -14,3 +14,7 @@ v0.0.4
 - Normalizace repozitáře mercurialu, včetně hooků.
 - Umožňnuje vytváření mercurial repozitářů.
 
+v0.0.5
+- Messages to English
+- Optimalize for D compiler dmd-2.065.
+- Help action.

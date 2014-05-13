@@ -29,6 +29,7 @@ enum Action
 	SHELL,
 	VERIFY_CONFIG,
 	VERSION,
+	HELP,
 	AUTH
 }
 
@@ -156,6 +157,9 @@ class Request
 			case "version":
 				this._action = Action.VERSION;
 				break;
+			case "help":
+				this._action = Action.HELP;
+				break;
 			case "auth":
 				this._action = Action.AUTH;
 				break;
@@ -225,6 +229,8 @@ class Request
 				return "version";
 			case Action.AUTH:
 				return "auth";
+			case Action.HELP:
+				return "help";
 		}
 	}
 

@@ -89,7 +89,7 @@ abstract class AbstractCommand : ICommand
 	@property ICommand logger(ILogger logger)
 	{
 		if (! logger) {
-			throw new NullException("Not set null.");
+			throw new NullException("Instance of logger is empty.");
 		}
 		this._logger = logger;
 		return this;
@@ -277,7 +277,7 @@ unittest {
 	IResponse response = cmd.createResponse(request);
 	assert(cmd.className == "stasi.commands.VersionCommand", "Invalid type of command");
 	response = cmd.fetch(request, response);
-	assert(response.toString() == "0.0.4\n", "[" ~ response.toString() ~ ']');
+	assert(response.toString() == "0.0.5\n", "[" ~ response.toString() ~ ']');
 }
 /**
  * Korektní získání verze stasi. Více zbytečných parametrů.
@@ -290,9 +290,72 @@ unittest {
 	IResponse response = cmd.createResponse(request);
 	assert(cmd.className == "stasi.commands.VersionCommand", "Invalid type of command");
 	response = cmd.fetch(request, response);
-	assert(response.toString() == "0.0.4\n", "[" ~ response.toString() ~ ']');
+	assert(response.toString() == "0.0.5\n", "[" ~ response.toString() ~ ']');
 }
 
+
+
+/**
+ * Action for show more information about use.
+ */
+class HelpCommand : AbstractCommand
+{
+
+	@property string className()
+	{
+		return this.classinfo.name;
+	}
+
+
+	/**
+	 *	Obálka na data.
+	 */
+	IResponse createResponse(Request request)
+	{
+		return new EchoResponse();
+	}
+
+
+	/**
+	 *	Vytvoření odpovědi. Předpokládáme jen náhled.
+	 */
+	IResponse fetch(Request request, IResponse response)
+	{
+		EchoResponse response2 = cast(EchoResponse) response;
+		response2.content = "Stasi host Git and Mercurial repositories
+
+Version: 0.0.5
+
+Usage:
+  command [arguments]
+
+Available commands:
+  help           this
+  version        print version of stasi
+  verify-config  check syntax of configuration
+  auth           athorization of user's permission: access allowed or denied
+  shell          running command from SSH_ORIGINAL_COMMAND
+
+Author:
+  Martin Takáč <taco@taco-beru.name>
+";
+
+		return response2;
+	}
+
+}
+/**
+ * Korektní získání verze stasi.
+ */
+unittest {
+	string[string] env;
+	Request request = new Request(["stasi", "help"], env);
+	HelpCommand cmd = new HelpCommand();
+	IResponse response = cmd.createResponse(request);
+	assert(cmd.className == "stasi.commands.HelpCommand", "Invalid type of command");
+	response = cmd.fetch(request, response);
+	assert(response.toString()[0..41] == "Stasi host Git and Mercurial repositories", "[" ~ response.toString()[0..41] ~ ']');
+}
 
 
 

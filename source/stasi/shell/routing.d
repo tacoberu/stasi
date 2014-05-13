@@ -68,6 +68,7 @@ class Router : IRoute
 				case Action.VERIFY_CONFIG:
 				case Action.AUTH:
 				case Action.VERSION:
+				case Action.HELP:
 					return true;
 				default:
 					return false;
@@ -90,6 +91,8 @@ class Router : IRoute
 				return new AuthCommand(cast(Application)model.application);
 			case Action.VERSION:
 				return new VersionCommand(cast(Application)model.application);
+			case Action.HELP:
+				return new HelpCommand();
 			default:
 				return null;
 		}
