@@ -180,7 +180,7 @@ class ModelBuilder : IModelBuilder
 class Application : IModel
 {
 
-	static const VERSION = "0.0.4";
+	static const VERSION = "0.0.5";
 
 
 	/**
