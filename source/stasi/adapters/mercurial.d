@@ -297,7 +297,7 @@ unittest {
 	Application model = new Application(new Dir("."));
 	Command cmd = new Command(model);
 	IResponse response = cmd.createResponse(request);
-	assert(cmd.className == "stasi.adapters.mercurial.Command", "Spatný typ commandu");
+	assert(cmd.className == "stasi.adapters.mercurial.Command", "Invalid type of command");
 	try {
 		response = cmd.fetch(request, response);
 	}

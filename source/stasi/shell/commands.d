@@ -199,7 +199,7 @@ unittest {
 	Application model = new Application(new Dir("."));
 	OriginalCommand cmd = new OriginalCommand(model);
 	IResponse response = cmd.createResponse(request);
-	assert(cmd.className == "stasi.commands.OriginalCommand", "Spatný typ commandu");
+	assert(cmd.className == "stasi.commands.OriginalCommand", "Invalid type of command");
 	response = cmd.fetch(request, response);
 	assert(response.toString() == "cmd:[ls -la]", "[" ~ response.toString() ~ ']');
 }
@@ -275,7 +275,7 @@ unittest {
 	Application model = new Application(new Dir("."));
 	VersionCommand cmd = new VersionCommand(model);
 	IResponse response = cmd.createResponse(request);
-	assert(cmd.className == "stasi.commands.VersionCommand", "Spatný typ commandu");
+	assert(cmd.className == "stasi.commands.VersionCommand", "Invalid type of command");
 	response = cmd.fetch(request, response);
 	assert(response.toString() == "0.0.4\n", "[" ~ response.toString() ~ ']');
 }
@@ -288,7 +288,7 @@ unittest {
 	Application model = new Application(new Dir("."));
 	VersionCommand cmd = new VersionCommand(model);
 	IResponse response = cmd.createResponse(request);
-	assert(cmd.className == "stasi.commands.VersionCommand", "Spatný typ commandu");
+	assert(cmd.className == "stasi.commands.VersionCommand", "Invalid type of command");
 	response = cmd.fetch(request, response);
 	assert(response.toString() == "0.0.4\n", "[" ~ response.toString() ~ ']');
 }
@@ -369,7 +369,7 @@ unittest {
 	ModelBuilder model = new ModelBuilder(config, new Logger());
 	VerifyConfigCommand cmd = new VerifyConfigCommand(model);
 	IResponse response = cmd.createResponse(request);
-	assert(cmd.className == "stasi.commands.VerifyConfigCommand", "Spatný typ commandu");
+	assert(cmd.className == "stasi.commands.VerifyConfigCommand", "Invalid type of command");
 	try {
 		response = cmd.fetch(request, response);
 	}
@@ -387,7 +387,7 @@ unittest {
 	ModelBuilder model = new ModelBuilder(config, new Logger());
 	VerifyConfigCommand cmd = new VerifyConfigCommand(model);
 	IResponse response = cmd.createResponse(request);
-	assert(cmd.className == "stasi.commands.VerifyConfigCommand", "Spatný typ commandu");
+	assert(cmd.className == "stasi.commands.VerifyConfigCommand", "Invalid type of command");
 	try {
 		response = cmd.fetch(request, response);
 	}
@@ -405,7 +405,7 @@ unittest {
 	ModelBuilder model = new ModelBuilder(config, new Logger());
 	VerifyConfigCommand cmd = new VerifyConfigCommand(model);
 	IResponse response = cmd.createResponse(request);
-	assert(cmd.className == "stasi.commands.VerifyConfigCommand", "Spatný typ commandu");
+	assert(cmd.className == "stasi.commands.VerifyConfigCommand", "Invalid type of command");
 	response = cmd.fetch(request, response);
 	assert(response.toString() == "Verifing config [tests_data/correct.xml]: OK\n", "[" ~ response.toString() ~ ']');
 }
