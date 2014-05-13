@@ -78,7 +78,7 @@ class ExecResponse : IResponse
 
 
 
-	string toString()
+	override string toString()
 	{
 		return format("cmd:[%s]", this.command);
 	}
@@ -115,7 +115,7 @@ class EchoResponse : IResponse
 
 
 
-	string toString()
+	override string toString()
 	{
 		return this.content;
 	}

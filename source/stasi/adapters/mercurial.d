@@ -327,8 +327,8 @@ unittest {
 	}
 }
 /**
- * Scénář úspěšného příštupu k repozitáři.
- */
+ * Scénář úspěšného přístupu k repozitáři.
+ * /
 unittest {
 	string[string] env;
 	env["SSH_ORIGINAL_COMMAND"] = "hg -R stasi.hg serve --stdio";
@@ -357,7 +357,7 @@ unittest {
 	response = cmd.fetch(request, response);
 	assert(response.toString() == "cmd:[hg -R temp/foo/doo/stasi.hg serve --stdio]", response.toString());
 }
-
+//*/
 
 
 /**

@@ -384,10 +384,10 @@ class CommonFilter : IFilter
 abstract class AbstractWriter : IWriter
 {
 
-	const PLACE_MESSAGE = "%message%";
-	const PLACE_LEVEL = "%level%";
-	const PLACE_TYPE = "%type%";
-	const PLACE_DATETIME = "%datetime%";
+	static const PLACE_MESSAGE = "%message%";
+	static const PLACE_LEVEL = "%level%";
+	static const PLACE_TYPE = "%type%";
+	static const PLACE_DATETIME = "%datetime%";
 
 
 	/**
@@ -467,7 +467,7 @@ abstract class AbstractWriter : IWriter
 class OutputWriter : AbstractWriter
 {
 
-	const DEFAULT_FORMAT = this.PLACE_LEVEL ~ " [" ~ this.PLACE_TYPE ~ "] " ~ this.PLACE_MESSAGE;
+	static const DEFAULT_FORMAT = this.PLACE_LEVEL ~ " [" ~ this.PLACE_TYPE ~ "] " ~ this.PLACE_MESSAGE;
 
 
 	/**
@@ -503,7 +503,7 @@ class OutputWriter : AbstractWriter
 class FileWriter : AbstractWriter
 {
 
-	const DEFAULT_FORMAT = "[" ~ this.PLACE_DATETIME ~ "] [" ~ this.PLACE_LEVEL ~ "] " ~ this.PLACE_MESSAGE;
+	static const DEFAULT_FORMAT = "[" ~ this.PLACE_DATETIME ~ "] [" ~ this.PLACE_LEVEL ~ "] " ~ this.PLACE_MESSAGE;
 
 
 	private File file;

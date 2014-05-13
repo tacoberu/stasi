@@ -24,7 +24,6 @@ import stasi.config;
 import taco.logging;
 import taco.utils;
 
-import std.stdio;
 import std.string;
 
 
@@ -393,7 +392,7 @@ unittest {
 		response = cmd.fetch(request, response);
 	}
 	catch (stasi.config.InvalidConfigException e) {
-		assert("Invalid xml format: [Line 38, column 2: end tag name \"s:settingx\" differs from start tag name \"s:setting\",Line 10, column 2: Element,Line 10, column 2: Content,Line 2, column 1: Element,Line 1, column 1: Document,]." == e.msg, e.msg);
+		assert("Invalid xml format: [\"Line 38, column 2: end tag name \\\"s:settingx\\\" differs from start tag name \\\"s:setting\\\"\", \"Line 10, column 2: Element\", \"Line 10, column 2: Content\", \"Line 2, column 1: Element\", \"Line 1, column 1: Document\", \"\"]." == e.msg, e.msg);
 	}
 }
 /**

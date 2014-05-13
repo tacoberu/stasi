@@ -48,13 +48,13 @@ class Config
 	/**
 	 * Defaultní umístění konfiguračního souboru.
 	 */
-	const DEFAULT_CONFIG_FILE = ".config/stasi/config.xml";
+	static const DEFAULT_CONFIG_FILE = ".config/stasi/config.xml";
 
 
 	/**
 	 * Defaultní umístění logů.
 	 */
-	const DEFAULT_LOGS_PATH = "/var/log/stasi/";
+	static const DEFAULT_LOGS_PATH = "/var/log/stasi/";
 
 
 	/**

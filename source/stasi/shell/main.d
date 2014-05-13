@@ -38,7 +38,7 @@ import std.process;
  */
 int main(string[] args)
 {
-	Config config;
+	stasi.config.Config config;
 	Logger logger;
 	Request request;
 
@@ -48,7 +48,7 @@ int main(string[] args)
 
 		//setenv("STASI_VERSION", "0.0.1", true);
 		// environment["STASI_VERSION"] = "0.0.1";
-		config = new Config(request);
+		config = new stasi.config.Config(request);
 		//config.addParser(new ConfigXmlReader());
 
 		logger = new Logger();

@@ -180,7 +180,7 @@ class ModelBuilder : IModelBuilder
 class Application : IModel
 {
 
-	const VERSION = "0.0.4";
+	static const VERSION = "0.0.4";
 
 
 	/**
@@ -545,7 +545,7 @@ class Repository
 	}
 
 
-	string toString()
+	override string toString()
 	{
 		return format("%s, %s, full:[%s]", this.name, this.type, this.full);
 	}

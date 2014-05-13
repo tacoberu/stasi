@@ -48,7 +48,7 @@ class Dir
 
 
 
-	string toString()
+	override string toString()
 	{
 		return this.path;
 	}

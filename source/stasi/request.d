@@ -24,7 +24,8 @@ import taco.utils;
 
 
 
-enum Action {
+enum Action
+{
 	SHELL,
 	VERIFY_CONFIG,
 	VERSION,
@@ -122,7 +123,7 @@ class Request
 
 
 
-	string toString()
+	override string toString()
 	{
 		return format("request: action=[%s], user=[%s], command=[%s], home=[%s], config=[%s]",
 				formatAction(this.action),
