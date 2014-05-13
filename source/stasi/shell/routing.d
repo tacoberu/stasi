@@ -90,9 +90,10 @@ class Router : IRoute
 			case Action.AUTH:
 				return new AuthCommand(cast(Application)model.application);
 			case Action.VERSION:
-				return new VersionCommand(cast(Application)model.application);
+				return new VersionCommand(new ApplicationInfo());
+//				return new VersionCommand(cast(Application)model.application);
 			case Action.HELP:
-				return new HelpCommand();
+				return new HelpCommand(new ApplicationInfo());
 			default:
 				return null;
 		}

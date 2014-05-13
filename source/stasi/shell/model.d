@@ -168,10 +168,16 @@ class ModelBuilder : IModelBuilder
 		return app;
 	}
 
-
-
 }
 
+
+/**
+ *	Generic info.
+ */
+class ApplicationInfo
+{
+	static const VERSION = "0.0.5";
+}
 
 
 /**
@@ -179,9 +185,6 @@ class ModelBuilder : IModelBuilder
  */
 class Application : IModel
 {
-
-	static const VERSION = "0.0.5";
-
 
 	/**
 	 * Seznam oprávnění.

@@ -214,13 +214,13 @@ unittest {
 class VersionCommand : AbstractCommand
 {
 
-	private Application _model;
+	private ApplicationInfo _model;
 
 
 	/**
 	 *	Vytvoření objektu na základě parametrů z getu.
 	 */
-	this(Application model)
+	this(ApplicationInfo model)
 	{
 		this._model = model;
 	}
@@ -247,7 +247,7 @@ class VersionCommand : AbstractCommand
 	/**
 	 * Model aplikace
 	 */
-	@property Application model()
+	@property ApplicationInfo model()
 	{
 		return this._model;
 	}
@@ -272,7 +272,8 @@ class VersionCommand : AbstractCommand
 unittest {
 	string[string] env;
 	Request request = new Request(["stasi", "version"], env);
-	Application model = new Application(new Dir("."));
+//	Application model = new Application(new Dir("."));
+	ApplicationInfo model = new ApplicationInfo();
 	VersionCommand cmd = new VersionCommand(model);
 	IResponse response = cmd.createResponse(request);
 	assert(cmd.className == "stasi.commands.VersionCommand", "Invalid type of command");
@@ -285,7 +286,8 @@ unittest {
 unittest {
 	string[string] env;
 	Request request = new Request(["stasi", "version", "--config", "./build/sample.xml", "--user", "franta"], env);
-	Application model = new Application(new Dir("."));
+	//~ Application model = new Application(new Dir("."));
+	ApplicationInfo model = new ApplicationInfo();
 	VersionCommand cmd = new VersionCommand(model);
 	IResponse response = cmd.createResponse(request);
 	assert(cmd.className == "stasi.commands.VersionCommand", "Invalid type of command");
@@ -300,6 +302,18 @@ unittest {
  */
 class HelpCommand : AbstractCommand
 {
+
+	private ApplicationInfo _model;
+
+
+	/**
+	 *	Vytvoření objektu na základě parametrů z getu.
+	 */
+	this(ApplicationInfo model)
+	{
+		this._model = model;
+	}
+
 
 	@property string className()
 	{
@@ -317,6 +331,15 @@ class HelpCommand : AbstractCommand
 
 
 	/**
+	 * Model aplikace
+	 */
+	@property ApplicationInfo model()
+	{
+		return this._model;
+	}
+
+
+	/**
 	 *	Vytvoření odpovědi. Předpokládáme jen náhled.
 	 */
 	IResponse fetch(Request request, IResponse response)
@@ -324,7 +347,7 @@ class HelpCommand : AbstractCommand
 		EchoResponse response2 = cast(EchoResponse) response;
 		response2.content = "Stasi host Git and Mercurial repositories
 
-Version: 0.0.5
+Version: " ~ this.model.VERSION ~ "
 
 Usage:
   command [arguments]
@@ -350,7 +373,7 @@ Author:
 unittest {
 	string[string] env;
 	Request request = new Request(["stasi", "help"], env);
-	HelpCommand cmd = new HelpCommand();
+	HelpCommand cmd = new HelpCommand(new ApplicationInfo());
 	IResponse response = cmd.createResponse(request);
 	assert(cmd.className == "stasi.commands.HelpCommand", "Invalid type of command");
 	response = cmd.fetch(request, response);

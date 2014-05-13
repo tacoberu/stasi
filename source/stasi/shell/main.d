@@ -28,6 +28,7 @@ import taco.logging;
 import std.stdio;
 import std.string;
 import std.process;
+import std.file;
 
 
 /**
@@ -52,11 +53,19 @@ int main(string[] args)
 		//config.addParser(new ConfigXmlReader());
 
 		logger = new Logger();
-		//logger.addListener(new OutputWriter(), new CommonFilter(Level.TRACE));
-		logger.addListener(
-				new FileWriter(File((config.logsPath.path ~ "stasi.log"), "a")),
-				new CommonFilter(Level.TRACE)
-				);
+		if (exists(config.logsPath.path)) {
+			logger.addListener(
+					new FileWriter(File((config.logsPath.path ~ "stasi.log"), "a")),
+					new CommonFilter(Level.TRACE)
+					);
+		}
+		else {
+			logger.addListener(
+					new OutputWriter(),
+					new CommonFilter(Level.WARN)
+					);
+		}
+
 	}
 	catch (Exception e) {
 		stderr.writefln("[fatal] (Stasi): cannot initialize - %s", e.msg);
@@ -65,7 +74,7 @@ int main(string[] args)
 
 	//	Process
 	try {
-		logger.info("== start ==");
+		logger.log("== start ==");
 		int ret = (new Dispatcher(config, new ModelBuilder(config, logger)))
 				.addRoute(new stasi.routing.Router())
 				.addRoute(new git.Router())
@@ -79,6 +88,10 @@ int main(string[] args)
 		stderr.writefln("[fatal] (Stasi): %s", e.msg ? e.msg : e.classinfo.name);
 		logger.warn((e.msg ? e.msg : e.classinfo.name),	"auth");
 		return 2;
+	}
+	catch (FileException e) {
+		stderr.writefln("[fatal] (Stasi): %s", e.msg ? e.msg : e.classinfo.name);
+		return 5;
 	}
 	catch (Exception e) {
 		stderr.writefln("[fatal] (Stasi): %s", e.msg ? e.msg : e.classinfo.name);
